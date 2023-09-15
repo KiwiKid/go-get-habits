@@ -1,88 +1,65 @@
 package main
 
-import "strconv"
+import (
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
 
-var data []Company
+type ResetFrequency string
 
-type Company struct {
-	ID      string
-	Company string
-	Contact string
-	Country string
+const (
+	Daily   ResetFrequency = "daily"
+	Weekly  ResetFrequency = "weekly"
+	Monthly ResetFrequency = "monthly"
+	// Add more frequencies as needed
+)
+
+type Habit struct {
+	ID             uint           `gorm:"primarykey"`
+	Name           string         `gorm:"size:255"`
+	ResetFrequency ResetFrequency `gorm:"type:varchar(10)"`
 }
 
-func init() {
-	data = []Company{
-		{
-			ID:      "1",
-			Company: "Amazon",
-			Contact: "Jeff Bezos",
-			Country: "United States",
-		},
-		{
-			ID:      "2",
-			Company: "Apple",
-			Contact: "Tim Cook",
-			Country: "United States",
-		},
-		{
-			ID:      "3",
-			Company: "Microsoft",
-			Contact: "Satya Nadella",
-			Country: "United States",
-		},
-	}
+type Database struct {
+	db *gorm.DB
 }
 
-func getCompanyByID(id string) Company {
-	var result Company
-	for _, i := range data {
-		if i.ID == id {
-			result = i
-			break
-		}
+func NewDatabase() (*Database, error) {
+	db, err := gorm.Open(sqlite.Open("habits.db"), &gorm.Config{})
+	if err != nil {
+		return nil, err
 	}
-	return result
+
+	if err := db.AutoMigrate(&Habit{}); err != nil {
+		return nil, err
+	}
+
+	return &Database{
+		db: db,
+	}, nil
 }
 
-func updateCompany(company Company) {
-	result := []Company{}
-	for _, i := range data {
-		if i.ID == company.ID {
-			i.Company = company.Company
-			i.Contact = company.Contact
-			i.Country = company.Country
-		}
-		result = append(result, i)
-	}
-	data = result
+
+func (d *Database) CreateHabit(h *Habit) error {
+	return d.db.Create(h).Error
 }
 
-func addCompany(company Company) {
-	max := 0
-	for _, i := range data {
-		n, _ := strconv.Atoi(i.ID)
-		if n > max {
-			max = n
-		}
+func (d *Database) GetAllHabits() ([]Habit, error) {
+	var habits []Habit
+	if err := d.db.Find(&habits).Error; err != nil {
+		return nil, err
 	}
-	max++
-	id := strconv.Itoa(max)
-
-	data = append(data, Company{
-		ID:      id,
-		Company: company.Company,
-		Contact: company.Contact,
-		Country: company.Country,
-	})
+	return habits, nil
 }
 
-func deleteCompany(id string) {
-	result := []Company{}
-	for _, i := range data {
-		if i.ID != id {
-			result = append(result, i)
-		}
+func (d *Database) GetHabitByID(id string) (*Habit, error) {
+	var habit Habit
+	if err := d.db.First(&habit, id).Error; err != nil {
+		return nil, err
 	}
-	data = result
+	return &habit, nil
+}
+
+func (d *Database) DeleteHabitByID(id uint) error {
+	return d.db.Delete(&Habit{}, id).Error
 }
