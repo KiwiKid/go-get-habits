@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -18,8 +20,9 @@ type Habit struct {
 	ID             uint           `gorm:"primarykey"`
 	Name           string         `gorm:"size:255"`
 	ResetFrequency ResetFrequency `gorm:"type:varchar(10)"`
+	IsActive       bool           `gorm:"type:boolean"`
+	LastComplete   time.Time      `gorm:"type:datetime"`
 }
-
 type Database struct {
 	db *gorm.DB
 }

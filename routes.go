@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/jritsema/gotoolbox/web"
@@ -31,12 +32,42 @@ func habitAdd(r *http.Request) *web.Response {
 func habits(r *http.Request) *web.Response {
 	id, segments := web.PathLast(r)
 	db, err := NewDatabase()
+	
+	
+	if err != nil {
+		fmt.Println("Error:", err)
+		rows, err := db.GetAllHabits()
+		if err != nil {
+			panic(err)
+		}
+		return web.HTML(http.StatusNotFound, html, "habits.html", rows, nil)
+	}
 
 	switch r.Method {
 
-//case http.MethodDelete:
-//	deleteHabit(id)
-//	return web.HTML(http.StatusOK, html, "habits.html", data, nil)
+	case http.MethodDelete:
+		fmt.Println("Delete start")
+
+		var idInt uint
+		_, err := fmt.Sscanf(id, "%d", &idInt)
+		if err != nil {
+			fmt.Println("Error:", err)
+			rows, err := db.GetAllHabits()
+			if err != nil {
+				panic(err)
+			}
+			return  web.HTML(http.StatusNotFound, html, "habits.html", rows, nil)
+		}
+		err = db.DeleteHabitByID(idInt)
+		if err != nil {
+			panic(err)
+		}
+		rows, err := db.GetAllHabits()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Delete complete")
+		return web.HTML(http.StatusOK, html, "habits.html", rows, nil)
 
 	//cancel
 	case http.MethodGet:
