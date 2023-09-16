@@ -9,8 +9,12 @@ require (
 )
 
 require (
+	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
+	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
 )
