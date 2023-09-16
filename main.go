@@ -50,6 +50,9 @@ func main() {
 	router.Handle("/habit", web.Action(habits))
 	router.Handle("/habit/", web.Action(habits))
 
+
+	router.Handle("/publish", web.Action(publish))
+
 	router.Handle("/css/output.css", http.FileServer(http.FS(css)))
 	//router.Handle("/company/edit", web.Action(companyEdit))
 	//router.Handle("/company/edit/", web.Action(companyEdit))

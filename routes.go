@@ -26,6 +26,41 @@ func habitAdd(r *http.Request) *web.Response {
 	return web.HTML(http.StatusOK, html, "habit-add.html", habits, nil)
 }
 
+func publish(r *http.Request) *web.Response {
+	fmt.Println("publish start")
+
+	switch r.Method {
+	case http.MethodPost:
+		db, err := NewDatabase()
+		if err != nil {
+			panic(err)
+		}
+		rows, err := db.GetAllHabits()
+		if err != nil {
+			panic(err)
+		}
+
+		broker := "192.168.1.5"
+		port := 1883
+		topic := "go_habits"
+		publisher := NewHabitPublisher(broker, port, topic)
+
+		// Connect to the MQTT broker.
+		publisher.Connect()
+		defer publisher.Disconnect()
+
+		// Publish the habits.
+		publisher.PublishHabits(rows)
+
+		return  web.HTML(http.StatusOK, html, "publish.html", rows, nil)
+	case http.MethodGet:
+		return  web.HTML(http.StatusOK, html, "publish.html", nil,  nil)
+	}
+	return web.Empty(http.StatusNotImplemented)
+}
+
+
+
 // GET /company
 // GET /company/{id}
 // DELETE /company/{id}

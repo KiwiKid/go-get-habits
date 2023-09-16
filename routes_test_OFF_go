@@ -1,0 +1,53 @@
+package main
+
+import (
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"testing"
+)
+
+// mockDatabase behaves like your actual database but returns predictable results for testing.
+type mockDatabase struct{}
+
+
+func (db *mockDatabase) GetHabitByID(id uint) (*Habit, error) {
+	// Return a predictable habit for testing.
+	return &Habit{ID: id, Name: "Test Habit"}, nil
+}
+
+func (db *mockDatabase) GetAllHabits() ([]*Habit, error) {
+	// Return a predictable list of habits for testing.
+	return []*Habit{{ID: 1, Name: "Test Habit 1"}, {ID: 2, Name: "Test Habit 2"}}, nil
+}
+
+func TestHabits(t *testing.T) {
+    req, err := http.NewRequest("GET", "/", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    // Call the habits function directly
+    response := habits(req)
+
+    // Check the response
+    if response == nil {
+        t.Fatal("Expected a response, got nil")
+    }
+
+    // Check the status code
+    if response.Status != http.StatusOK {
+        t.Errorf("Expected status code 200, got %d", response.Status)
+    }
+
+    // Check the body
+    body, err := ioutil.ReadAll(response.Content)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    // This is a simple check. You might want to do more thorough checks depending on your use case.
+    if !strings.Contains(string(body), "<table>") {
+        t.Error("Expected a table in the response")
+    }
+}
