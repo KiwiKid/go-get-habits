@@ -5,7 +5,7 @@
       type="text"
       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
       data-include-edit="{{.ID}}"
-      name="company"
+      name="Name"
       value="{{.Name}}"
     />
   </td>
@@ -14,19 +14,17 @@
       type="checkbox"
       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
       data-include-edit="{{.ID}}"
-      name="contact"
-      value="{{.ID}}"
+      name="IsActive"
+      value="{{.IsActive}}"
+      {{if .IsActive}}checked{{end}}
     />
   </td>
-  <!--<td class="whitespace-nowrap px-6 py-4">
-    <input
-      type="text"
+  <td class="whitespace-nowrap px-6 py-4">
+    <div
       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-      data-include-edit="{{.ID}}"
-      name="country"
-      value="{{.}}"
-    />
-  </td>-->
+      hover="disabled"
+    >{{.LastComplete}}</div>
+  </td>
   <td class="whitespace-nowrap px-1 py-1">
     <a
       hx-put="/habit/{{.ID}}"

@@ -9,6 +9,8 @@ import (
 
 // GET /company/add
 func habitAdd(r *http.Request) *web.Response {
+	fmt.Println("habitAdd:")
+
 	db, err := NewDatabase()
 	if err != nil {
 		panic(err)
@@ -30,17 +32,20 @@ func habitAdd(r *http.Request) *web.Response {
 // PUT /company/{id}
 // POST /company
 func habits(r *http.Request) *web.Response {
-	id, segments := web.PathLast(r)
+	fmt.Println("habits start")
+
+	id, _ := web.PathLast(r)
 	db, err := NewDatabase()
-	
+	var idInt uint
+	_, idError := fmt.Sscanf(id, "%d", &idInt)
 	
 	if err != nil {
 		fmt.Println("Error:", err)
-		rows, err := db.GetAllHabits()
-		if err != nil {
-			panic(err)
-		}
-		return web.HTML(http.StatusNotFound, html, "habits.html", rows, nil)
+		//rows, err := db.GetAllHabits()
+		//if err != nil {
+		//	panic(err)
+		//}
+		//return web.HTML(http.StatusNotFound, html, "habits.html", rows, nil)
 	}
 
 	switch r.Method {
@@ -48,9 +53,8 @@ func habits(r *http.Request) *web.Response {
 	case http.MethodDelete:
 		fmt.Println("Delete start")
 
-		var idInt uint
-		_, err := fmt.Sscanf(id, "%d", &idInt)
-		if err != nil {
+
+		if idError != nil {
 			fmt.Println("Error:", err)
 			rows, err := db.GetAllHabits()
 			if err != nil {
@@ -71,33 +75,39 @@ func habits(r *http.Request) *web.Response {
 
 	//cancel
 	case http.MethodGet:
-		if segments > 1 {
+		fmt.Println("get start")
+		if idError != nil {
+			row, err := db.GetHabitByID(idInt)
 			if err != nil {
 				panic(err)
 			}
-			row, err := db.GetHabitByID(id)
-			if err != nil {
-				panic(err)
-			}
+			fmt.Println("returning row")
 			return web.HTML(http.StatusOK, html, "row.html", row, nil)
 		} else {
 			//cancel add
-			rows, err := db.GetAllHabits()
+			row, err := db.GetHabitByID(idInt)
 			if err != nil {
 				panic(err)
 			}
-			return web.HTML(http.StatusOK, html, "habits.html", rows, nil)
+			fmt.Println("returning list")
+			return web.HTML(http.StatusOK, html, "row.html", row, nil)
 		}
 
 	//save edit
-	//case http.MethodPut:
-	//	row := GetHabitByID(id)
-	//	r.ParseForm()
-	//	row.Company = r.Form.Get("company")
-	//	row.Contact = r.Form.Get("contact")
-	//	row.Country = r.Form.Get("country")
-	//	updateHabit(row)
-	//	return web.HTML(http.StatusOK, html, "row.html", row, nil)
+	case http.MethodPut:
+		println("http.MethodPut")
+		row, err := db.GetHabitByID(idInt)
+		if err != nil {
+			panic(err)
+		}
+		r.ParseForm()
+		
+		row.Name = r.Form.Get("Name")
+		row.IsActive = len(r.Form.Get("IsActive")) > 0
+		println("Saving")
+		println(r.Form.Get("IsActive"))
+		db.EditHabit(idInt, row)
+		return web.HTML(http.StatusOK, html, "row.html", row, nil)
 
 	//save add
 //	case http.MethodPost:
@@ -125,6 +135,8 @@ func habits(r *http.Request) *web.Response {
 // Cancel ->	 GET /company -> nothing, companys.html
 
 func index(r *http.Request) *web.Response {
+	fmt.Println("index:")
+
 	db, err := NewDatabase()
 	rows, err := db.GetAllHabits()
 	if err != nil {
@@ -138,12 +150,27 @@ func index(r *http.Request) *web.Response {
 //	return web.HTML(http.StatusOK, html, "company-add.html", data, nil)
 //}
 
-// /GET company/edit/{id}
-//func companyEdit(r *http.Request) *web.Response {
-//	id, _ := web.PathLast(r)
-//	row := getCompanyByID(id)
-//	return web.HTML(http.StatusOK, html, "row-edit.html", row, nil)
-//}
+ // /GET habit/edit/{id}
+func habitEdit(r *http.Request) *web.Response {
+	fmt.Println("index:")
+
+	db, err := NewDatabase()
+	if err != nil {
+		panic(err)
+	}
+	id, _ := web.PathLast(r)
+	var idInt uint
+	_, idError := fmt.Sscanf(id, "%d", &idInt)
+	
+	if idError != nil {
+		fmt.Println("Error:", err)
+	}
+	row, err := db.GetHabitByID(idInt)
+	if err != nil {
+		panic(err)
+	}
+	return web.HTML(http.StatusOK, html, "row-edit.html", row, nil)
+}
 
 // GET /company
 // GET /company/{id}

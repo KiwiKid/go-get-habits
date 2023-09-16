@@ -42,14 +42,15 @@ func main() {
 	router := http.NewServeMux()
 
 	router.Handle("/habit/add", web.Action(habitAdd))
-	
+	router.Handle("/habit/add/", web.Action(habitAdd))
+
+	router.Handle("/habit/edit", web.Action(habitEdit))
+	router.Handle("/habit/edit/", web.Action(habitEdit))
+
 	router.Handle("/habit", web.Action(habits))
+	router.Handle("/habit/", web.Action(habits))
 
 	router.Handle("/css/output.css", http.FileServer(http.FS(css)))
-
-	//router.Handle("/company/add", web.Action(companyAdd))
-	//router.Handle("/company/add/", web.Action(companyAdd))
-//
 	//router.Handle("/company/edit", web.Action(companyEdit))
 	//router.Handle("/company/edit/", web.Action(companyEdit))
 

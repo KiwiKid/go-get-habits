@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/driver/sqlite"
@@ -55,7 +56,8 @@ func (d *Database) GetAllHabits() ([]Habit, error) {
 	return habits, nil
 }
 
-func (d *Database) GetHabitByID(id string) (*Habit, error) {
+func (d *Database) GetHabitByID(id uint) (*Habit, error) {
+	fmt.Printf(`GetHabitByID`)
 	var habit Habit
 	if err := d.db.First(&habit, id).Error; err != nil {
 		return nil, err
@@ -65,4 +67,8 @@ func (d *Database) GetHabitByID(id string) (*Habit, error) {
 
 func (d *Database) DeleteHabitByID(id uint) error {
 	return d.db.Delete(&Habit{}, id).Error
+}
+
+func (d *Database) EditHabit(id uint, updatedHabit *Habit) error {
+	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(updatedHabit).Error
 }
