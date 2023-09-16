@@ -48,13 +48,19 @@ func (d *Database) CreateHabit(h *Habit) error {
 	return d.db.Create(h).Error
 }
 
-func (d *Database) GetAllHabits() ([]Habit, error) {
-	var habits []Habit
-	if err := d.db.Find(&habits).Error; err != nil {
-		return nil, err
-	}
-	return habits, nil
+func (d *Database) GetAllHabits(isActive ...bool) ([]Habit, error) {
+    var habits []Habit
+    db := d.db
+    if len(isActive) > 0 && isActive[0] {
+        db = db.Where("is_active = ?", true)
+    }
+    if err := db.Find(&habits).Error; err != nil {
+        return nil, err
+    }
+    return habits, nil
 }
+
+
 
 func (d *Database) GetHabitByID(id uint) (*Habit, error) {
 	fmt.Printf(`GetHabitByID`)

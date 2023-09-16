@@ -35,7 +35,7 @@ func publish(r *http.Request) *web.Response {
 		if err != nil {
 			panic(err)
 		}
-		rows, err := db.GetAllHabits()
+		rows, err := db.GetAllHabits(true)
 		if err != nil {
 			panic(err)
 		}
@@ -49,6 +49,10 @@ func publish(r *http.Request) *web.Response {
 		publisher.Connect()
 		defer publisher.Disconnect()
 
+		fmt.Println("Publishing, Topic:")
+		fmt.Println(topic)
+		fmt.Println("Publishing, Message:")
+		fmt.Println(rows)
 		// Publish the habits.
 		publisher.PublishHabits(rows)
 
