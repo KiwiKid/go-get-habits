@@ -31,6 +31,11 @@ func publish(r *http.Request) *web.Response {
 
 	switch r.Method {
 	case http.MethodPost:
+		r.ParseForm()
+		
+		topic := r.Form.Get("Topic")
+		println("Saving "+topic)
+
 		db, err := NewDatabase()
 		if err != nil {
 			panic(err)
@@ -42,8 +47,7 @@ func publish(r *http.Request) *web.Response {
 
 		broker := "192.168.1.5"
 		port := 1883
-		topic := "go_habits"
-		publisher := NewHabitPublisher(broker, port, topic)
+		publisher := NewHabitPublisher(broker, port, "homeassistant/"+topic)
 
 		// Connect to the MQTT broker.
 		publisher.Connect()
@@ -56,9 +60,17 @@ func publish(r *http.Request) *web.Response {
 		// Publish the habits.
 		publisher.PublishHabits(rows)
 
-		return  web.HTML(http.StatusOK, html, "publish.html", rows, nil)
+		data := map[string]interface{}{
+			"topic": topic,
+		}		
+
+		return  web.HTML(http.StatusOK, html, "publish.html", data, nil)
 	case http.MethodGet:
-		return  web.HTML(http.StatusOK, html, "publish.html", nil,  nil)
+		data := map[string]interface{}{
+			"topic": "go_habits",
+		}
+
+		return  web.HTML(http.StatusOK, html, "publish.html", data,  nil)
 	}
 	return web.Empty(http.StatusNotImplemented)
 }
@@ -144,8 +156,8 @@ func habits(r *http.Request) *web.Response {
 		row.Name = r.Form.Get("Name")
 		row.IsActive = len(r.Form.Get("IsActive")) > 0
 		println("Saving")
-		println(r.Form.Get("IsActive"))
 		db.EditHabit(idInt, row)
+
 		return web.HTML(http.StatusOK, html, "row.html", row, nil)
 
 	//save add

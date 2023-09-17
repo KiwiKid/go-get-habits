@@ -1,6 +1,4 @@
-<button
-    hx-post="/publish"
-    hx-target="this"
-    hx-swap="outerHTML"
-    hx-indicator="processing"
->Publish</button>
+<form hx-post="/publish" hx-target="this" hx-swap="outerHTML" hx-indicator="#processing">
+    homeassistant/<input type="text" name="Topic" placeholder="Enter topic" value="{{ .topic }}" ></input>/[Habit]
+    <button type="submit">Publish</button>
+</form>

@@ -5,7 +5,15 @@
     <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
         <div class="overflow-hidden">
-          {{ template "publish.html". }}
+          <div
+              hx-get="/publish"
+              hx-target="this"
+              hx-swap="outerHTML"
+              hx-indicator="#processing"
+              hx-trigger="load"
+              class=""
+              href=""
+            >Loading..</div>
 
           <div class="flex justify-end">
             <button

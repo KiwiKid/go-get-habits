@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -13,11 +14,12 @@ type HabitPublisher struct {
 }
 
 type HabitMessage struct {
-	Name                    string `json:"name"`
-	StateTopic              string `json:"state_topic"`
+	ObjectId                    string `json:"object_id"`
+	Name              		string `json:"name"`
+	StateTopic 				string `json:"command_topic"`
 	CommandTopic            string `json:"command_topic"`
-	BrightnessStateTopic    string `json:"brightness_state_topic"`
-	BrightnessCommandTopic  string `json:"brightness_command_topic"`
+	FriendlyName			string `json:friendly_name`
+	Device					string `json:device`
 	Schema                  string `json:"schema"`
 }
 
@@ -38,11 +40,20 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 	for _, habit := range habits {
 		fmt.Println("publishing:")
 		fmt.Println(habit)
+		fmt.Println("to:")
+		topic := toSnakeCase(p.Topic) + "/" + habit.Name;
+		publishTopic := strings.ToLower(topic)
+		fmt.Println("to:")
+		fmt.Println(topic)
+
 
 		habitMessage := HabitMessage{
+			ObjectId: habit.Name,
 			Name: habit.Name,
-			StateTopic: p.Topic + "/" + habit.Name + "/state",
-			CommandTopic: p.Topic + "/" + habit.Name + "/set",
+			StateTopic: publishTopic + "/state",
+			CommandTopic: publishTopic + "/set",
+			FriendlyName: habit.Name,
+			Device: "habits",
 			Schema: "json",
 		}
 
@@ -53,7 +64,7 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 			continue
 		}
 
-		if token := p.Client.Publish(p.Topic, 0, false, habitJson); token.Wait() && token.Error() != nil {
+		if token := p.Client.Publish(publishTopic, 0, false, habitJson); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
 		}
 	}
