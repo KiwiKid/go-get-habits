@@ -45,9 +45,7 @@ func publish(r *http.Request) *web.Response {
 			panic(err)
 		}
 
-		broker := "192.168.1.5"
-		port := 1883
-		publisher := NewHabitPublisher(broker, port, topic)
+		publisher := NewHabitPublisher(topic)
 
 		// Connect to the MQTT broker.
 		publisher.Connect()
@@ -117,6 +115,9 @@ func habits(r *http.Request) *web.Response {
 		if err != nil {
 			panic(err)
 		}
+		publisher := NewHabitPublisher("go_habits")
+		publisher.Connect()
+		defer publisher.Disconnect()
 		rows, err := db.GetAllHabits()
 		if err != nil {
 			panic(err)

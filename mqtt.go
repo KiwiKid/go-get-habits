@@ -18,6 +18,7 @@ type HabitMessage struct {
 	Name              		string `json:"name"`
 	CommandTopic            string `json:"command_topic"`
 	FriendlyName			string `json:"friendly_name"`
+	Payload					string `json:"payload"`
 	Schema                  string `json:"schema"`
 }
 
@@ -37,9 +38,21 @@ type HabitConfig struct {
 	Schema                  string `json:"schema"`
 }
 
+func (p *HabitPublisher) getMqttTopic(rawTopic string, posfix string)string{
+	thisTopic := toSnakeCase(rawTopic)
+	publishTopic := strings.ToLower(thisTopic)
 
 
-func NewHabitPublisher(broker string, port int, topic string) *HabitPublisher {
+	fullTopic := "homeassistant/binary_sensor/"+  p.Topic + "/"+ publishTopic +"/" + posfix
+
+	println(fullTopic)
+	return fullTopic
+}
+
+
+func NewHabitPublisher(topic string) *HabitPublisher {
+	broker := "192.168.1.5"
+	port := 1883
 	opts := mqtt.NewClientOptions().AddBroker(fmt.Sprintf("%s:%d", broker, port))
 	client := mqtt.NewClient(opts)
 	return &HabitPublisher{Client: client, Topic: topic}
@@ -51,36 +64,39 @@ func (p *HabitPublisher) Connect() {
 	}
 }
 
+func (p *HabitPublisher) DeleteHabit(habit Habit) { 
+	configTopic := p.getMqttTopic(habit.Name, "config")
+	if token := p.Client.Publish(configTopic, 0, false, ""); token.Wait() && token.Error() != nil {
+		fmt.Println(token.Error())
+	}
+}
+
 func (p *HabitPublisher) PublishHabits(habits []Habit) {
 	for _, habit := range habits {
-		fmt.Println("publishing:")
-		fmt.Println(habit)
-		fmt.Println("to:")
-		thisTopic := toSnakeCase(p.Topic)
-		topic := thisTopic + "/" + habit.Name;
-		publishTopic := strings.ToLower(topic)
 
+
+		stateTopic := p.getMqttTopic(habit.Name, "state")
+		setTopic := p.getMqttTopic(habit.Name, "set")
 
 		configMessage := HabitConfig{
 			Name: habit.Name,
-			StateTopic: publishTopic + "/state",
+			StateTopic: stateTopic,
 			DeviceClass: "binary_sensor",
 			UniqueId: habit.Name,
-			CommandTopic: publishTopic + "/set",
+			CommandTopic: setTopic,
 			Device: Device{
 				Identifiers: "hab",
-				Name: "Habits",
+				Name: "HabitsV2",
 			},
 			Schema: "json",
 		}
 
+		configTopic := p.getMqttTopic(habit.Name, "config")
 
-		fullTopic := "homeassistant/binary_sensor/" + publishTopic + "/config"
-		fmt.Println("fullTopic (config):")
-		fmt.Println(thisTopic)
-		fmt.Println(topic)
-		fmt.Println(publishTopic)
-		fmt.Println(fullTopic)
+
+		fmt.Println("publishing:")
+		fmt.Println(configTopic)
+
 
 		habitConfigJson, err := json.Marshal(configMessage)
 		if err != nil {
@@ -88,30 +104,29 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 			continue
 		}
 
-		if token := p.Client.Publish(fullTopic, 0, false, habitConfigJson); token.Wait() && token.Error() != nil {
+		fmt.Println("habitConfigJson:")
+		fmt.Print(configMessage)
+
+		if token := p.Client.Publish(configTopic, 0, false, habitConfigJson); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
 		}
 
-		habitMessageJson := HabitMessage{
-			ObjectId: habit.Name,
-			Name: habit.Name,
-			FriendlyName: habit.Name,
-			Schema: "json",
-		}
+		//habitMessageJson := HabitMessage{
+		//	ObjectId: habit.Name,
+		//	Name: habit.Name,
+		//	FriendlyName: habit.Name,
+		//	Payload: "on",
+		//	Schema: "json",
+		//}
+//
+		//// Convert the habit to a JSON object.
+		//habitJson, err := json.Marshal(habitMessageJson)
+		//if err != nil {
+		//	fmt.Println(err)
+		//	continue
+		//}
 
-		// Convert the habit to a JSON object.
-		habitJson, err := json.Marshal(habitMessageJson)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-
-		fullConfigTopic := "homeassistant/binary_sensor/" + publishTopic + "/state"
-		fmt.Println("fullTopic (state):")
-		fmt.Println(fullConfigTopic)
-
-		if token := p.Client.Publish(fullConfigTopic, 0, false, habitJson); token.Wait() && token.Error() != nil {
+		if token := p.Client.Publish(stateTopic, 0, false, "ON"); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
 		}
 	}
