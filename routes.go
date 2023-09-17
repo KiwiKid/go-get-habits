@@ -47,7 +47,7 @@ func publish(r *http.Request) *web.Response {
 
 		broker := "192.168.1.5"
 		port := 1883
-		publisher := NewHabitPublisher(broker, port, "homeassistant/"+topic)
+		publisher := NewHabitPublisher(broker, port, topic)
 
 		// Connect to the MQTT broker.
 		publisher.Connect()
