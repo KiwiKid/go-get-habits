@@ -19,11 +19,36 @@
       {{if .IsActive}}checked{{end}}
     />
   </td>
+  <td class="whitespace-nowrap px-6 py-4">    
+    {{if .NeedsCompletion}}
+      <span role="img" aria-label="tick">✔️</span>
+    {{else}}
+      <span role="img" aria-label="cross">❌</span>
+    {{end}}
+  </td>
   <td class="whitespace-nowrap px-6 py-4">
     <div
       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
       hover="disabled"
     >{{.LastComplete}}</div>
+  </td>
+  
+  <td class="whitespace-nowrap px-6 py-4">
+    <input
+      type="number"
+      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+      data-include-edit="{{.ID}}"
+      name="ResetValue"
+      value="{{.ResetValue}}"
+    />
+  </td>
+  <td class="whitespace-nowrap px-6 py-4">
+    <select data-include-edit="{{.ID}}"
+    name="ResetFrequency" id="ResetFrequency">
+      <option value="daily">Daily</option>
+      <option value="weekly">Weekly</option>
+      <option value="monthly">Monthly</option>
+    </select>
   </td>
   <td class="whitespace-nowrap px-1 py-1">
     <a

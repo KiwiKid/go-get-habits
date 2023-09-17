@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/jritsema/gotoolbox/web"
 )
@@ -11,10 +12,11 @@ import (
 func habitAdd(r *http.Request) *web.Response {
 	fmt.Println("habitAdd:")
 
-	db, err := NewDatabase()
+	db, closeDB, err := NewDatabase()
 	if err != nil {
 		panic(err)
 	}
+	defer closeDB()
 	habit := &Habit{
 		Name:           "Exercise",
 		ResetFrequency: Daily,
@@ -24,6 +26,41 @@ func habitAdd(r *http.Request) *web.Response {
 	}
 	habits, err := db.GetAllHabits()
 	return web.HTML(http.StatusOK, html, "habit-add.html", habits, nil)
+}
+
+func habitCompleted(r *http.Request) *web.Response {
+
+	switch r.Method {
+	case http.MethodPost:
+		fmt.Println("habitCompleted:")
+		db, closeDB, err := NewDatabase()
+		if err != nil {
+			panic(err)
+		}
+		defer closeDB()
+		id, _ := web.PathLast(r)
+		var idInt uint
+		_, idError := fmt.Sscanf(id, "%d", &idInt)
+		if idError != nil {
+			fmt.Println("Error:", err)
+
+			return web.DataJSON(http.StatusNotFound, nil, map[string]string{"Content-Type": "application/json"})
+		}
+
+
+		db.CompleteHabit(idInt)
+
+		row, err := db.GetHabitByID(idInt)
+
+		if err != nil {
+			fmt.Println("Error:", err)
+			if err != nil {
+				panic(err)
+			}
+		}
+		return web.DataJSON(http.StatusOK, row, map[string]string{"Content-Type": "application/json"})
+	}
+	return web.Empty(http.StatusNotImplemented)
 }
 
 func publish(r *http.Request) *web.Response {
@@ -36,10 +73,11 @@ func publish(r *http.Request) *web.Response {
 		topic := r.Form.Get("Topic")
 		println("Saving "+topic)
 
-		db, err := NewDatabase()
+		db, closeDB, err := NewDatabase()
 		if err != nil {
 			panic(err)
 		}
+		defer closeDB()
 		rows, err := db.GetAllHabits(true)
 		if err != nil {
 			panic(err)
@@ -84,18 +122,15 @@ func habits(r *http.Request) *web.Response {
 	fmt.Println("habits start")
 
 	id, _ := web.PathLast(r)
-	db, err := NewDatabase()
+	db, closeDB, err := NewDatabase()
 	var idInt uint
 	_, idError := fmt.Sscanf(id, "%d", &idInt)
 	
 	if err != nil {
 		fmt.Println("Error:", err)
-		//rows, err := db.GetAllHabits()
-		//if err != nil {
-		//	panic(err)
-		//}
-		//return web.HTML(http.StatusNotFound, html, "habits.html", rows, nil)
+		return web.Empty(http.StatusInternalServerError)
 	}
+	defer closeDB()
 
 	switch r.Method {
 
@@ -155,6 +190,13 @@ func habits(r *http.Request) *web.Response {
 		r.ParseForm()
 		
 		row.Name = r.Form.Get("Name")
+		row.ResetFrequency = ResetFrequency(r.Form.Get("ResetFrequency"))
+		resetValue, err := strconv.Atoi(r.Form.Get("ResetValue"))
+		if err != nil {
+			// handle error
+		}
+		row.ResetValue = resetValue
+		row.Group = r.Form.Get("Group")
 		row.IsActive = len(r.Form.Get("IsActive")) > 0
 		println("Saving")
 		db.EditHabit(idInt, row)
@@ -189,11 +231,12 @@ func habits(r *http.Request) *web.Response {
 func index(r *http.Request) *web.Response {
 	fmt.Println("index:")
 
-	db, err := NewDatabase()
+	db, closeDB, err := NewDatabase()
 	rows, err := db.GetAllHabits()
 	if err != nil {
 		panic(err)
 	}
+	defer closeDB()
 	return web.HTML(http.StatusOK, html, "index.html", rows, nil)
 }
 
@@ -206,10 +249,11 @@ func index(r *http.Request) *web.Response {
 func habitEdit(r *http.Request) *web.Response {
 	fmt.Println("index:")
 
-	db, err := NewDatabase()
+	db, closeDB, err := NewDatabase()
 	if err != nil {
 		panic(err)
 	}
+	defer closeDB()
 	id, _ := web.PathLast(r)
 	var idInt uint
 	_, idError := fmt.Sscanf(id, "%d", &idInt)

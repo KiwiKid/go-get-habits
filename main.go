@@ -26,6 +26,64 @@ var (
 	html *template.Template
 )
 
+func keepCheckingHabitStatus() {
+	ticker := time.NewTicker(5 * time.Minute)
+
+	for {
+		select {
+		case <-ticker.C:
+			// Initialize database
+			db, closeDB, err := NewDatabase()
+			if err != nil {
+				log.Printf("Error initializing database: %s", err)
+				continue
+			}
+
+			defer closeDB()
+
+			// Fetch all active habits
+			rows, err := db.GetAllHabits(true)
+			if err != nil {
+				log.Printf("Error fetching habits: %s", err)
+				continue
+			}
+
+			// Check each habit's status
+			for _, habit := range rows {
+				if needsCompletion(habit) {
+					
+					habit.NeedsCompletion = true;
+
+					err := db.EditHabit(habit.ID, &habit)
+
+					if(err != nil){
+						log.Printf("Error Editing habit: %s", err)
+
+					}
+
+					// Handle what to do if habit needs completion. For instance, notify the user.
+				}
+			}
+		}
+	}
+}
+
+func needsCompletion(h Habit) bool {
+	// Based on your habit's reset frequency and reset value,
+	// determine if the habit needs to be completed again
+	switch h.ResetFrequency {
+	case Daily:
+		return time.Since(h.LastComplete) > time.Duration(h.ResetValue)*time.Hour*24
+	case Weekly:
+		return time.Since(h.LastComplete) > time.Duration(h.ResetValue)*time.Hour*24*7
+	case Monthly:
+		return time.Since(h.LastComplete) > time.Duration(h.ResetValue)*time.Hour*24*30
+	default:
+		log.Printf("Unknown reset frequency: %s", h.ResetFrequency)
+		return false
+	}
+}
+
 func main() {
 
 	//exit process immediately upon sigterm
@@ -40,6 +98,9 @@ func main() {
 
 	//add routes
 	router := http.NewServeMux()
+
+	router.Handle("/habit/complete", web.Action(habitCompleted))
+	router.Handle("/habit/complete/", web.Action(habitCompleted))
 
 	router.Handle("/habit/add", web.Action(habitAdd))
 	router.Handle("/habit/add/", web.Action(habitAdd))
@@ -76,6 +137,8 @@ func main() {
 		logger.Println("http.ListenAndServe():", err)
 		os.Exit(1)
 	}
+
+	keepCheckingHabitStatus()
 }
 
 func handleSigTerms() {

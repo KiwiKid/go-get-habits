@@ -8,7 +8,18 @@
       <span role="img" aria-label="cross">❌</span>
     {{end}}
 </td>
+  <td class="whitespace-nowrap px-6 py-4">    
+    {{if .NeedsCompletion}}
+      <span role="img" aria-label="tick">✔️</span>
+    {{else}}
+      <span role="img" aria-label="cross">❌</span>
+    {{end}}
+  </td>
   <td class="whitespace-nowrap px-6 py-4">{{.LastComplete}}</td>
+  <td class="whitespace-nowrap px-6 py-4">{{.ResetValue}}</td>
+  <td class="whitespace-nowrap px-6 py-4">{{.ResetFrequency}}</td>
+  <td class="whitespace-nowrap px-6 py-4">{{.Group}}</td>
+
   <td class="whitespace-nowrap px-1 py-1">
     <a
       hx-get="/habit/edit/{{.ID}}"
