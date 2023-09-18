@@ -1,13 +1,8 @@
 # go-htmx-tailwind-example
 
-Example CRUD app written in Go + HTMX + Tailwind CSS
+A habit management and publishing system to track completion and broadcast habits/task status via a mqtt message broker for display in home assistant.
 
-This project implements a pure dynamic web app with SPA-like features but without heavy complex Javascript or Go frameworks to keep up with.  Just HTML/CSS + Go ❤️
-
-![screenshot](./screenshot.jpeg)
-
-
-## Develop
+Written with go, tailwind and htmx
 
 ```
  Choose a make command to run
