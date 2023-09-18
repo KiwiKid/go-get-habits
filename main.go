@@ -77,7 +77,12 @@ func needsCompletion(h Habit) bool {
 	case Weekly:
 		return time.Since(h.LastComplete) > time.Duration(h.ResetValue)*time.Hour*24*7
 	case Monthly:
+		// Note: Using 30 days for a month is a simplification, some months have 28, 29, or 31 days.
 		return time.Since(h.LastComplete) > time.Duration(h.ResetValue)*time.Hour*24*30
+	case Minutes:
+		return time.Since(h.LastComplete) > time.Duration(h.ResetValue)*time.Minute
+	case Hourly:
+		return time.Since(h.LastComplete) > time.Duration(h.ResetValue)*time.Hour
 	default:
 		log.Printf("Unknown reset frequency: %s", h.ResetFrequency)
 		return false

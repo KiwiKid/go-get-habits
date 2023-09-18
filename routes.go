@@ -203,16 +203,36 @@ func habits(r *http.Request) *web.Response {
 
 		return web.HTML(http.StatusOK, html, "row.html", row, nil)
 
-	//save add
-//	case http.MethodPost:
-//		row := Company{}
-//		r.ParseForm()
-//		row.Company = r.Form.Get("company")
-//		row.Contact = r.Form.Get("contact")
-//		row.Country = r.Form.Get("country")
-//		habitAdd(row)
-//		return web.HTML(http.StatusOK, html, "habits.html", data, nil)
+	case http.MethodPost:
+		r.ParseForm()
+	
+		name := r.Form.Get("Name")
+		resetFrequency := ResetFrequency(r.Form.Get("ResetFrequency"))
+		resetValue, err := strconv.Atoi(r.Form.Get("ResetValue"))
+		if err != nil {
+			// handle error
+		}
+		group := r.Form.Get("Group")
+		isActive := len(r.Form.Get("IsActive")) > 0
+	
+		newHabit := Habit{
+			Name:           name,
+			ResetFrequency: resetFrequency,
+			ResetValue:     resetValue,
+			Group:          group,
+			IsActive:       isActive,
+			// Add any other required fields if they exist.
+		}
+	
+		db.CreateHabit(&newHabit)  // I'm assuming the method should be called with newHabit instead of 'h'
+		rows, err := db.GetAllHabits()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Create complete")
+		return web.HTML(http.StatusOK, html, "habits.html", rows, nil)
 	}
+	
 
 	return web.Empty(http.StatusNotImplemented)
 }

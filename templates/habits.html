@@ -1,9 +1,9 @@
-<div id="habits">
+<div id="habits flex border-b">
   <div id="processing" class="htmx-indicator">Processing...</div>
-  <div class="flex flex-col">
+  <div class=" dark:border-neutral-500 w-full">
     <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
-        <div class="overflow-hidden">
+        <div class="">
           <div
               hx-get="/publish"
               hx-target="this"
@@ -26,28 +26,28 @@
               Add
             </button>
           </div>
-          {{ this should not be a .Table }}
-          <table class="min-w-full text-left text-sm font-light">
-            <thead class="border-b font-medium dark:border-neutral-500">
-              <tr>
-                <th scope="col" class="px-6 py-4">#</th>
-                <th scope="col" class="px-6 py-4">Habit</th>
-                <th scope="col" class="px-6 py-4">active</th>
-                <th scope="col" class="px-6 py-4">Complete</th>
-                <th scope="col" class="px-6 py-4">Last Complete</th>
-                <th scope="col" class="px-6 py-4">Reset Unit</th>
-                <th scope="col" class="px-6 py-4">Reset Frequency</th>
-                <th scope="col" class="px-6 py-4">Group</th>
-                
+          <div class="">
+            <div class="border-b font-medium dark:border-neutral-500">
+                <div class="flex">
+                    <div class="flex-none px-6 py-4 w-1/8">Needs doing?</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Habit</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Active</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Complete</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Last Complete</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Reset Duration</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Reset Frequency</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Group</div>
+                </div>
+            </div>
 
-              </tr>
-            </thead>
-            <tbody id="table-body">
-              {{range .}}
-                {{ template "row.html". }}
-              {{end}}
-            </tbody>
-          </table>
+            <div id="table-body">
+                {{range .}}
+                    {{ template "row.html". }}
+                {{end}}
+            </div>
+
+        </div>
+
         </div>
       </div>
     </div>

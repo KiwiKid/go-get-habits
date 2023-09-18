@@ -11,9 +11,12 @@ import (
 type ResetFrequency string
 
 const (
+	Minutes ResetFrequency = "minutes"
+	Hourly  ResetFrequency = "hourly"
 	Daily   ResetFrequency = "daily"
 	Weekly  ResetFrequency = "weekly"
 	Monthly ResetFrequency = "monthly"
+
 	// Add more frequencies as needed
 )
 

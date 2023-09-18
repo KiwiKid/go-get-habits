@@ -1,75 +1,84 @@
-<tr id="datarow-{{.ID}}" class="border-b dark:border-neutral-500">
-  <td class="whitespace-nowrap px-6 py-4">{{.ID}}</td>
-  <td class="whitespace-nowrap px-6 py-4">
-    <input
-      type="text"
-      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-      data-include-edit="{{.ID}}"
-      name="Name"
-      value="{{.Name}}"
-    />
-  </td>
-  <td class="whitespace-nowrap px-6 py-4">
-    <input
-      type="checkbox"
-      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-      data-include-edit="{{.ID}}"
-      name="IsActive"
-      value="{{.IsActive}}"
-      {{if .IsActive}}checked{{end}}
-    />
-  </td>
-  <td class="whitespace-nowrap px-6 py-4">    
-    {{if .NeedsCompletion}}
-      <span role="img" aria-label="tick">✔️</span>
-    {{else}}
-      <span role="img" aria-label="cross">❌</span>
-    {{end}}
-  </td>
-  <td class="whitespace-nowrap px-6 py-4">
-    <div
-      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-      hover="disabled"
-    >{{.LastComplete}}</div>
-  </td>
+<div id="datarow-{{.ID}}" class="flex border-b dark:border-neutral-500">
+
+  <div class="whitespace-nowrap px-6 py-4 w-1/8">{{.ID}}</div>
   
-  <td class="whitespace-nowrap px-6 py-4">
-    <input
-      type="number"
-      class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-      data-include-edit="{{.ID}}"
-      name="ResetValue"
-      value="{{.ResetValue}}"
-    />
-  </td>
-  <td class="whitespace-nowrap px-6 py-4">
-    <select data-include-edit="{{.ID}}" name="ResetFrequency" id="ResetFrequency">
-      <option value="daily" {{if eq .ResetFrequency "daily"}}selected{{end}}>Daily</option>
-      <option value="weekly" {{if eq .ResetFrequency "weekly"}}selected{{end}}>Weekly</option>
-      <option value="monthly" {{if eq .ResetFrequency "monthly"}}selected{{end}}>Monthly</option>
-    </select>
-  </td>
-  <td class="whitespace-nowrap px-1 py-1">
-    <a
-      hx-put="/habit/{{.ID}}"
-      hx-target="#datarow-{{.ID}}"
-      hx-swap="outerHTML"
-      hx-indicator="#processing"
-      hx-include="*[data-include-edit='{{.ID}}']"
-      class="inline-flex items-center h-8 px-4 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
-      href=""
-      >Save</a
-    >
-  </td>
-  <td class="whitespace-nowrap px-1 py-1">
-    <a
-      hx-get="/habit/{{.ID}}"
-      hx-target="#datarow-{{.ID}}"
-      hx-swap="outerHTML"
-      hx-indicator="#processing"
-      class="inline-flex items-center h-8 px-4 m-2 text-sm text-red-100 transition-colors duration-150 bg-red-700 rounded-lg focus:shadow-outline hover:bg-red-800"
-      href=""
-      >Cancel (#datarow-{{.ID}})</a
-    >
-  </td>
-</tr>
+  <div class="whitespace-nowrap px-6 py-4 w-1/8">
+      <input
+          type="text"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          data-include-edit="{{.ID}}"
+          name="Name"
+          value="{{.Name}}"
+      />
+  </div>
+  
+  <div class="whitespace-nowrap px-6 py-4 w-1/8">
+      <input
+          type="checkbox"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          data-include-edit="{{.ID}}"
+          name="IsActive"
+          value="{{.IsActive}}"
+          {{if .IsActive}}checked{{end}}
+      />
+  </div>
+
+  <div class="whitespace-nowrap px-6 py-4 w-1/8">
+      {{if .NeedsCompletion}}
+          <span role="img" aria-label="tick">✔️</span>
+      {{else}}
+          <span role="img" aria-label="cross">❌</span>
+      {{end}}
+  </div>
+  
+  <div class="whitespace-nowrap px-6 py-4 w-1/8">
+      <div
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          hover="disabled"
+      >{{.LastComplete}}</div>
+  </div>
+  
+  <div class="whitespace-nowrap px-6 py-4 w-1/8">
+      <input
+          type="number"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          data-include-edit="{{.ID}}"
+          name="ResetValue"
+          value="{{.ResetValue}}"
+      />
+  </div>
+
+  <div class="whitespace-nowrap px-6 py-4 w-1/8">
+      <select data-include-edit="{{.ID}}" name="ResetFrequency" id="ResetFrequency">
+          <option value="minutes"  {{if eq .ResetFrequency "minutes"}}selected{{end}}>Minutes</option>
+          <option value="hourly"  {{if eq .ResetFrequency "hourly"}}selected{{end}}>Hourly</option>  
+          <option value="daily" {{if eq .ResetFrequency "daily"}}selected{{end}}>Daily</option>
+          <option value="weekly" {{if eq .ResetFrequency "weekly"}}selected{{end}}>Weekly</option>
+          <option value="monthly" {{if eq .ResetFrequency "monthly"}}selected{{end}}>Monthly</option>
+      </select>
+  </div>
+
+  <div class="whitespace-nowrap px-1 py-1 w-1/8">
+      <a
+          hx-put="/habit/{{.ID}}"
+          hx-target="#datarow-{{.ID}}"
+          hx-swap="outerHTML"
+          hx-indicator="#processing"
+          hx-include="*[data-include-edit='{{.ID}}']"
+          class="inline-flex items-center h-8 px-4 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
+          href=""
+      >Save</a>
+  </div>
+  
+  <div class="whitespace-nowrap px-1 py-1 w-1/8">
+      <a
+          hx-get="/habit/{{.ID}}"
+          hx-target="#datarow-{{.ID}}"
+          hx-swap="outerHTML"
+          hx-indicator="#processing"
+          class="inline-flex items-center h-8 px-4 m-2 text-sm text-red-100 transition-colors duration-150 bg-red-700 rounded-lg focus:shadow-outline hover:bg-red-800"
+          href=""
+      >Cancel</a>
+  </div>
+
+</div>
