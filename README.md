@@ -4,6 +4,8 @@ A habit management and publishing system to track completion and broadcast habit
 
 Written with go, tailwind and htmx
 
+(ensure a later version of go is running with: `gvm use go1.21.1` )
+
 ```
  Choose a make command to run
 

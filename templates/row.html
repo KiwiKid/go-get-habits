@@ -1,65 +1,53 @@
-<div id="datarow-{{.ID}}" class="flex border-b dark:border-neutral-500">
-  <div class="flex-1 whitespace-nowrap px-6 py-4 w-1/8">
-    {{if .NeedsCompletion}}
-        <span role="img" aria-label="tick">✔️</span>
+<div id="datarow-{{.ID}}" class="border-b dark:border-neutral-500 w-full">
+  <div class="flex">
+    <div class="px-6 py-4 w-1/8">
+      {{if .NeedsCompletion}}
+      <span role="img" aria-label="tick">✔️</span>
 
-    {{else}}
-        <span role="img" aria-label="cross">❌</span>
-    {{end}}
-
-  </div>
-
-  <div class="flex-1 whitespace-nowrap px-6 py-4 w-1/8">{{.ID}}</div>
-  <div class="flex-1 whitespace-nowrap px-6 py-4 w-1/8">{{.Name}}</div>
-  
-  <div class="flex-1 whitespace-nowrap px-6 py-4 w-1/8">
-      {{if .IsActive}}
-          <span role="img" aria-label="tick">✔️</span>
       {{else}}
-          <span role="img" aria-label="cross">❌</span>
+      <span role="img" aria-label="cross">❌</span>
       {{end}}
-  </div>
+    </div>
+    <div class="px-6 py-4" title="{{.LastComplete | formatDate}}">
+      {{.LastComplete | relativeTime}}
+    </div>
+    <div class="px-6 py-4 w-1/8">{{.Name}}</div>
 
-
-
-  <div class="flex-1 whitespace-nowrap px-6 py-4 w-1/8">{{.LastComplete}}</div>
-  <div class="flex-1 whitespace-nowrap px-6 py-4 w-1/8">{{.ResetValue}}</div>
-  <div class="flex-1 whitespace-nowrap px-6 py-4 w-1/8">{{.ResetFrequency}}</div>
-  <div class="flex-1 whitespace-nowrap px-6 py-4 w-1/8">{{.Group}}</div>
-  
-  <div class="flex-1 whitespace-nowrap px-1 py-1 w-1/8">
+    <div class="px-6 py-4 w-1/8"></div>
+    <div class="px-6 py-4 w-1/8">Every {{.ResetValue}} {{.ResetFrequency}}</div>
+    <div class="px-6 py-4 w-1/8">{{.Group}}</div>
+    <div class="flex justify-end px-1 py-1 ml-4 w-1/8">
+      {{if .IsActive}}
+      <span role="img" aria-label="tick">✔️</span>
+      {{else}}
+      <span role="img" aria-label="cross">❌</span>
+      {{end}}
       <a
-          hx-get="/habit/edit/{{.ID}}"
-          hx-target="#datarow-{{.ID}}"
-          hx-swap="outerHTML"
-          hx-indicator="#processing"
-          class="hover:underline text-blue-700"
-          href=""
+        hx-get="/habit/edit/{{.ID}}"
+        hx-target="#datarow-{{.ID}}"
+        hx-swap="outerHTML"
+        hx-indicator="#processing"
+        class="hover:underline text-blue-700"
+        href=""
       >
-          Edit
+        Edit
       </a>
-  </div>
-
-  <div class="flex-1 whitespace-nowrap px-1 py-1 w-1/8">
       <a
-          hx-delete="/habit/{{.ID}}"
-          hx-target="#habits"
-          hx-confirm="Are you sure you want to delete {{.Name}}?"
-          hx-indicator="#processing"
-          class="hover:underline text-blue-700"
-          href=""
+        hx-delete="/habit/{{.ID}}"
+        hx-target="#habits"
+        hx-confirm="Are you sure you want to delete {{.Name}}?"
+        hx-indicator="#processing"
+        class="hover:underline text-blue-700"
+        href=""
       >
-          Delete
+        Delete
       </a>
-  </div>
-
-  <div class="whitespace-nowrap px-1 py-1 w-1/9">
-    <a
+      <a
         hx-post="/habit/complete/{{.ID}}"
         hx-indicator="#processing"
         class="inline-flex items-center h-8 px-4 m-2 text-sm text-red-100 transition-colors duration-150 bg-red-700 rounded-lg focus:shadow-outline hover:bg-red-800"
-    >Complete</a>
+        >Complete</a
+      >
+    </div>
   </div>
-
-
 </div>

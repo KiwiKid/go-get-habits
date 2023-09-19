@@ -28,7 +28,7 @@ type Habit struct {
 	Group	 	   string	      `gorm:"size:255"`
 	IsActive       bool           `gorm:"type:boolean"`
 	LastComplete   time.Time      `gorm:"type:datetime"`
-	NeedsCompletion bool	     `gorm:"type:boolean;default:false"`
+	NeedsCompletion bool	      `gorm:"type:boolean"`
 }
 type Database struct {
 	db *gorm.DB

@@ -25,13 +25,17 @@ var (
 	//parsed templates
 	html *template.Template
 )
-
+/*
 func keepCheckingHabitStatus() {
-	ticker := time.NewTicker(5 * time.Minute)
+	fmt.Println("keepCheckingHabitStatus")
+	//ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(5 * time.Second)
 
 	for {
 		select {
 		case <-ticker.C:
+			log.Printf("checking")
+
 			// Initialize database
 			db, closeDB, err := NewDatabase()
 			if err != nil {
@@ -50,8 +54,11 @@ func keepCheckingHabitStatus() {
 
 			// Check each habit's status
 			for _, habit := range rows {
+				fmt.Println("keepCheckingHabitStatus:"+habit.Name)
+
 				if needsCompletion(habit) {
-					
+					fmt.Println("keepCheckingHabitStatus:ACTION_NEEDED"+habit.Name)
+
 					habit.NeedsCompletion = true;
 
 					err := db.EditHabit(habit.ID, &habit)
@@ -62,11 +69,13 @@ func keepCheckingHabitStatus() {
 					}
 
 					// Handle what to do if habit needs completion. For instance, notify the user.
+				}else{
+					fmt.Println("keepCheckingHabitStatus:GOOD"+habit.Name)
 				}
 			}
 		}
 	}
-}
+}*/
 
 func needsCompletion(h Habit) bool {
 	// Based on your habit's reset frequency and reset value,
@@ -96,7 +105,7 @@ func main() {
 
 	//parse templates
 	var err error
-	html, err = web.TemplateParseFSRecursive(templateFS, ".html", true, nil)
+	html, err = ParseTemplates(templateFS)
 	if err != nil {
 		panic(err)
 	}
@@ -106,6 +115,8 @@ func main() {
 
 	router.Handle("/habit/complete", web.Action(habitCompleted))
 	router.Handle("/habit/complete/", web.Action(habitCompleted))
+
+	router.Handle("/check", web.Action(check))
 
 	router.Handle("/habit/add", web.Action(habitAdd))
 	router.Handle("/habit/add/", web.Action(habitAdd))
@@ -138,12 +149,16 @@ func main() {
 
 	port := gotoolbox.GetEnvWithDefault("PORT", "8080")
 	logger.Println("listening on http://localhost:" + port)
+	
+
 	if err := http.ListenAndServe(":"+port, middleware); err != nil {
 		logger.Println("http.ListenAndServe():", err)
 		os.Exit(1)
 	}
+	logger.Println("Down here?")
 
-	keepCheckingHabitStatus()
+	//keepCheckingHabitStatus()
+
 }
 
 func handleSigTerms() {

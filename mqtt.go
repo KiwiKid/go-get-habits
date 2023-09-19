@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -39,8 +38,8 @@ type HabitConfig struct {
 }
 
 func (p *HabitPublisher) getMqttTopic(rawTopic string, posfix string)string{
-	thisTopic := toSnakeCase(rawTopic)
-	publishTopic := strings.ToLower(thisTopic)
+	publishTopic := toSnakeCase(rawTopic)
+	//publishTopic := strings.ToLower(thisTopic)
 
 
 	fullTopic := "homeassistant/binary_sensor/"+  p.Topic + "/"+ publishTopic +"/" + posfix
@@ -78,6 +77,14 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 		stateTopic := p.getMqttTopic(habit.Name, "state")
 		setTopic := p.getMqttTopic(habit.Name, "set")
 
+
+		deviceName := "HabitsV2"
+		deviceId := "hab"
+		if(len(habit.Group) > 0){
+			deviceName = habit.Group
+			deviceId = toSnakeCase(habit.Group)
+		}
+
 		configMessage := HabitConfig{
 			Name: habit.Name,
 			StateTopic: stateTopic,
@@ -85,8 +92,8 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 			UniqueId: habit.Name,
 			CommandTopic: setTopic,
 			Device: Device{
-				Identifiers: "hab",
-				Name: "HabitsV2",
+				Identifiers: deviceId,
+				Name: deviceName,
 			},
 			Schema: "json",
 		}
@@ -126,7 +133,12 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 		//	continue
 		//}
 
-		if token := p.Client.Publish(stateTopic, 0, false, "ON"); token.Wait() && token.Error() != nil {
+		payload := "OFF"
+		if(habit.NeedsCompletion){
+			payload = "ON"
+		}
+
+		if token := p.Client.Publish(stateTopic, 0, true, payload); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
 		}
 	}

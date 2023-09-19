@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -26,6 +27,75 @@ func habitAdd(r *http.Request) *web.Response {
 	}
 	habits, err := db.GetAllHabits()
 	return web.HTML(http.StatusOK, html, "habit-add.html", habits, nil)
+}
+
+func check(r *http.Request) *web.Response {
+	switch r.Method {
+	case http.MethodPost:
+		log.Printf("checking")
+
+			// Initialize database
+			db, closeDB, err := NewDatabase()
+			if err != nil {
+				log.Printf("Error initializing database: %s", err)
+			}
+
+			defer closeDB()
+
+			// Fetch all active habits
+			rows, err := db.GetAllHabits(true)
+			if err != nil {
+				log.Printf("Error fetching habits: %s", err)
+			}
+
+			// Check each habit's status
+			for _, habit := range rows {
+				fmt.Println("Checking :"+habit.Name)
+
+				if needsCompletion(habit) {
+					fmt.Println("ACTION_NEEDED")
+
+					habit.NeedsCompletion = true;
+
+					err := db.EditHabit(habit.ID, &habit)
+
+					if(err != nil){
+						log.Printf("ERROR ERROR saving check habit: %s", err)
+					}
+
+					// Handle what to do if habit needs completion. For instance, notify the user.
+				}else{
+					// This extended update might not be needed always(just after config update)
+					habit.NeedsCompletion = false;
+					err := db.EditHabit(habit.ID, &habit)
+
+					if(err != nil){
+						log.Printf("ERROR ERROR saving check habit: %s", err)
+					}
+					fmt.Println("ALL GOOD"+habit.Name)
+				}
+			}
+
+			afterRows, err := db.GetAllHabits()
+			fmt.Println("afterRows")
+
+			for _, afterRow := range afterRows {
+				fmt.Println(afterRow.Name)
+
+				if(afterRow.NeedsCompletion){
+					fmt.Println("NeedsCompletion=true")
+				}else{
+					fmt.Println("NeedsCompletion=false")
+				}
+
+			}
+
+			if err != nil {
+				panic(err)
+			}
+			return  web.HTML(http.StatusOK, html, "habits.html", afterRows, nil)
+		}
+	return web.Empty(http.StatusNotImplemented)
 }
 
 func habitCompleted(r *http.Request) *web.Response {
@@ -64,7 +134,6 @@ func habitCompleted(r *http.Request) *web.Response {
 }
 
 func publish(r *http.Request) *web.Response {
-	fmt.Println("publish start")
 
 	switch r.Method {
 	case http.MethodPost:

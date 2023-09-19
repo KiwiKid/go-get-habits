@@ -1,9 +1,8 @@
-<div id="habits flex border-b">
+<div id="habits">
   <div id="processing" class="htmx-indicator">Processing...</div>
   <div class=" dark:border-neutral-500 w-full">
     <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
-        <div class="">
           <div
               hx-get="/publish"
               hx-target="this"
@@ -13,6 +12,15 @@
               class=""
               href=""
             >Loading..</div>
+
+            <button 
+            class="inline-flex items-center h-8 px-4 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
+
+            hx-post="/check" hx-trigger="click, every 5m" hx-target="#habits">
+              Manual-Check (auto every 5m)
+              <!-- This element will issue a GET request to /path/to/your/endpoint every 5 seconds -->
+            </button>
+          
 
           <div class="flex justify-end">
             <button
@@ -30,17 +38,16 @@
             <div class="border-b font-medium dark:border-neutral-500">
                 <div class="flex">
                     <div class="flex-none px-6 py-4 w-1/8">Needs doing?</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Ago</div>
                     <div class="flex-none px-6 py-4 w-1/8">Habit</div>
                     <div class="flex-none px-6 py-4 w-1/8">Active</div>
                     <div class="flex-none px-6 py-4 w-1/8">Complete</div>
-                    <div class="flex-none px-6 py-4 w-1/8">Last Complete</div>
-                    <div class="flex-none px-6 py-4 w-1/8">Reset Duration</div>
-                    <div class="flex-none px-6 py-4 w-1/8">Reset Frequency</div>
+                    <div class="flex-none px-6 py-4 w-1/8">Resets</div>
                     <div class="flex-none px-6 py-4 w-1/8">Group</div>
                 </div>
             </div>
 
-            <div id="table-body">
+            <div id="table-body" class="flex flex-col">
                 {{range .}}
                     {{ template "row.html". }}
                 {{end}}

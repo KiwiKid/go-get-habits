@@ -23,21 +23,7 @@
       />
   </div>
 
-  <div class="whitespace-nowrap px-6 py-4 w-1/8">
-      {{if .NeedsCompletion}}
-          <span role="img" aria-label="tick">✔️</span>
-      {{else}}
-          <span role="img" aria-label="cross">❌</span>
-      {{end}}
-  </div>
-  
-  <div class="whitespace-nowrap px-6 py-4 w-1/8">
-      <div
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          hover="disabled"
-      >{{.LastComplete}}</div>
-  </div>
-  
+
   <div class="whitespace-nowrap px-6 py-4 w-1/8">
       <input
           type="number"
@@ -56,6 +42,9 @@
           <option value="weekly" {{if eq .ResetFrequency "weekly"}}selected{{end}}>Weekly</option>
           <option value="monthly" {{if eq .ResetFrequency "monthly"}}selected{{end}}>Monthly</option>
       </select>
+      <div>
+        Every {{.ResetValue}} {{.ResetFrequency}}
+      </div>
   </div>
 
   <div class="whitespace-nowrap px-1 py-1 w-1/8">
