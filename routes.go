@@ -95,38 +95,20 @@ func habitCompleted(r *http.Request) *web.Response {
 				panic(err)
 			}
 		}
+		checkAndPublishAll()
 		return web.DataJSON(http.StatusOK, row, map[string]string{"Content-Type": "application/json"})
 	}
 	return web.Empty(http.StatusNotImplemented)
 }
 
 func checkAndPublish(r *http.Request) *web.Response {
+	checkAndPublishAll()
+
 	db, closeDB, err := NewDatabase()
-	if err != nil {
-		panic(err)
-	}
 	defer closeDB()
-	checkErr := db.checkAndUpdateHabits()
-
-	if(checkErr != nil){
-		panic(checkErr)
-	}
-	
-
-	publisher := NewHabitPublisher()
-
-	// Connect to the MQTT broker.
-	publisher.Connect()
-	defer publisher.Disconnect()
-
-	rows, err := db.GetAllHabits(true)
 	if err != nil {
 		panic(err)
 	}
-	// Publish the habits.
-	publisher.PublishHabits(rows)
-
-
 	freshRows, err := db.GetAllHabits()
 	if err != nil {
 		panic(err)
