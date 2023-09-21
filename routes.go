@@ -57,7 +57,7 @@ func check(r *http.Request) *web.Response {
 
 					habit.NeedsCompletion = true;
 
-					err := db.EditHabit(habit.ID, &habit)
+					err := db.SetHabitNeedCompletion(habit.ID, true)
 
 					if(err != nil){
 						log.Printf("ERROR ERROR saving check habit: %s", err)
@@ -67,7 +67,8 @@ func check(r *http.Request) *web.Response {
 				}else{
 					// This extended update might not be needed always(just after config update)
 					habit.NeedsCompletion = false;
-					err := db.EditHabit(habit.ID, &habit)
+
+					err := db.SetHabitNeedCompletion(habit.ID, false)
 
 					if(err != nil){
 						log.Printf("ERROR ERROR saving check habit: %s", err)

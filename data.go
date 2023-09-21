@@ -96,6 +96,10 @@ func (d *Database) EditHabit(id uint, updatedHabit *Habit) error {
 	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(updatedHabit).Error
 }
 
+func (d *Database) SetHabitNeedCompletion(id uint, NeedsCompletion bool) error {
+	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(map[string]interface{}{"NeedsCompletion": NeedsCompletion}).Error
+}
+
 
 func (d *Database) CompleteHabit(id uint) error {
 
