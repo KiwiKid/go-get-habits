@@ -49,12 +49,12 @@ func (p *HabitPublisher) getMqttTopic(rawTopic string, posfix string)string{
 }
 
 
-func NewHabitPublisher(topic string) *HabitPublisher {
+func NewHabitPublisher() *HabitPublisher {
 	broker := "192.168.1.5"
 	port := 1883
 	opts := mqtt.NewClientOptions().AddBroker(fmt.Sprintf("%s:%d", broker, port))
 	client := mqtt.NewClient(opts)
-	return &HabitPublisher{Client: client, Topic: topic}
+	return &HabitPublisher{Client: client, Topic: "go_habits"}
 }
 
 func (p *HabitPublisher) Connect() {
@@ -78,8 +78,8 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 		setTopic := p.getMqttTopic(habit.Name, "set")
 
 
-		deviceName := "HabitsV2"
-		deviceId := "hab"
+		deviceName := "habits"
+		deviceId := "habV4"
 		if(len(habit.Group) > 0){
 			deviceName = habit.Group
 			deviceId = toSnakeCase(habit.Group)
@@ -89,6 +89,7 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 			Name: habit.Name,
 			StateTopic: stateTopic,
 			DeviceClass: "binary_sensor",
+			FriendlyName: habit.Name,
 			UniqueId: habit.Name,
 			CommandTopic: setTopic,
 			Device: Device{

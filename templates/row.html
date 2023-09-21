@@ -1,6 +1,10 @@
-<div id="datarow-{{.ID}}" class="border-b dark:border-neutral-500 w-full">
-  <div class="flex">
+<div id="datarow-{{.ID}}" class="border-b dark:border-neutral-500 w-full   {{if .IsActive}} bg-red-200 {{else}} grayscale-0 {{end}} ">
+  <div class="flex ">
     <div class="px-6 py-4 w-1/8">
+      {{if .IsActive}}
+      {{else}}
+      <span role="img" aria-label="cross">(inactive)</span>
+      {{end}}
       {{if .NeedsCompletion}}
       <span role="img" aria-label="tick">✔️</span>
 
@@ -8,20 +12,16 @@
       <span role="img" aria-label="cross">❌</span>
       {{end}}
     </div>
-    <div class="px-6 py-4" title="{{.LastComplete | formatDate}}">
+    <div class="px-6 py-4 w-1/4" title="{{.LastComplete | formatDate}}">
       {{.LastComplete | relativeTime}}
     </div>
-    <div class="px-6 py-4 w-1/8">{{.Name}}</div>
+    <div class="px-6 py-4 w-36">{{.Name}}</div>
 
     <div class="px-6 py-4 w-1/8"></div>
     <div class="px-6 py-4 w-1/8">Every {{.ResetValue}} {{.ResetFrequency}}</div>
     <div class="px-6 py-4 w-1/8">{{.Group}}</div>
     <div class="flex justify-end px-1 py-1 ml-4 w-1/8">
-      {{if .IsActive}}
-      <span role="img" aria-label="tick">✔️</span>
-      {{else}}
-      <span role="img" aria-label="cross">❌</span>
-      {{end}}
+
       <a
         hx-get="/habit/edit/{{.ID}}"
         hx-target="#datarow-{{.ID}}"

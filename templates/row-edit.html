@@ -1,7 +1,16 @@
 <div id="datarow-{{.ID}}" class="flex border-b dark:border-neutral-500">
-
-  <div class="whitespace-nowrap px-6 py-4 w-1/8">{{.ID}}</div>
-  
+    <div class="whitespace-nowrap px-6 py-4 w-1/8">
+        <label for="IsActive">Active:</label>
+        <input
+            type="checkbox"
+            class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            data-include-edit="{{.ID}}"
+            name="IsActive"
+            value="{{.IsActive}}"
+            {{if .IsActive}}checked{{end}}
+        />
+    </div>
+   
   <div class="whitespace-nowrap px-6 py-4 w-1/8">
       <input
           type="text"
@@ -12,16 +21,6 @@
       />
   </div>
   
-  <div class="whitespace-nowrap px-6 py-4 w-1/8">
-      <input
-          type="checkbox"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          data-include-edit="{{.ID}}"
-          name="IsActive"
-          value="{{.IsActive}}"
-          {{if .IsActive}}checked{{end}}
-      />
-  </div>
 
 
   <div class="whitespace-nowrap px-6 py-4 w-1/8">

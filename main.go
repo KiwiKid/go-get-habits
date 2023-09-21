@@ -116,7 +116,10 @@ func main() {
 	router.Handle("/habit/complete", web.Action(habitCompleted))
 	router.Handle("/habit/complete/", web.Action(habitCompleted))
 
-	router.Handle("/check", web.Action(check))
+	router.Handle("/only-check", web.Action(check))
+
+	router.Handle("/publish", web.Action(publish))
+	router.Handle("/check", web.Action(checkAndPublish))
 
 	router.Handle("/habit/add", web.Action(habitAdd))
 	router.Handle("/habit/add/", web.Action(habitAdd))
@@ -128,7 +131,6 @@ func main() {
 	router.Handle("/habit/", web.Action(habits))
 
 
-	router.Handle("/publish", web.Action(publish))
 
 	router.Handle("/css/output.css", http.FileServer(http.FS(css)))
 	//router.Handle("/company/edit", web.Action(companyEdit))

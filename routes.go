@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/jritsema/gotoolbox/web"
 )
@@ -32,49 +32,15 @@ func habitAdd(r *http.Request) *web.Response {
 func check(r *http.Request) *web.Response {
 	switch r.Method {
 	case http.MethodPost:
-		log.Printf("checking")
-
-			// Initialize database
 			db, closeDB, err := NewDatabase()
 			if err != nil {
-				log.Printf("Error initializing database: %s", err)
+				panic(err)
 			}
-
 			defer closeDB()
+			checkErr := db.checkAndUpdateHabits()
 
-			// Fetch all active habits
-			rows, err := db.GetAllHabits(true)
-			if err != nil {
-				log.Printf("Error fetching habits: %s", err)
-			}
-
-			// Check each habit's status
-			for _, habit := range rows {
-				fmt.Println("Checking :"+habit.Name)
-
-				if needsCompletion(habit) {
-					fmt.Println("ACTION_NEEDED")
-
-					habit.NeedsCompletion = true;
-
-					err := db.SetHabitNeedCompletion(habit.ID, true)
-
-					if(err != nil){
-						log.Printf("ERROR ERROR saving check habit: %s", err)
-					}
-
-					// Handle what to do if habit needs completion. For instance, notify the user.
-				}else{
-					// This extended update might not be needed always(just after config update)
-					habit.NeedsCompletion = false;
-
-					err := db.SetHabitNeedCompletion(habit.ID, false)
-
-					if(err != nil){
-						log.Printf("ERROR ERROR saving check habit: %s", err)
-					}
-					fmt.Println("ALL GOOD"+habit.Name)
-				}
+			if(checkErr != nil){
+				panic(checkErr)
 			}
 
 			afterRows, err := db.GetAllHabits()
@@ -134,6 +100,40 @@ func habitCompleted(r *http.Request) *web.Response {
 	return web.Empty(http.StatusNotImplemented)
 }
 
+func checkAndPublish(r *http.Request) *web.Response {
+	db, closeDB, err := NewDatabase()
+	if err != nil {
+		panic(err)
+	}
+	defer closeDB()
+	checkErr := db.checkAndUpdateHabits()
+
+	if(checkErr != nil){
+		panic(checkErr)
+	}
+	
+
+	publisher := NewHabitPublisher()
+
+	// Connect to the MQTT broker.
+	publisher.Connect()
+	defer publisher.Disconnect()
+
+	rows, err := db.GetAllHabits(true)
+	if err != nil {
+		panic(err)
+	}
+	// Publish the habits.
+	publisher.PublishHabits(rows)
+
+
+	freshRows, err := db.GetAllHabits()
+	if err != nil {
+		panic(err)
+	}
+	return  web.HTML(http.StatusFound, html, "habits.html", freshRows, nil)
+}
+
 func publish(r *http.Request) *web.Response {
 
 	switch r.Method {
@@ -144,6 +144,7 @@ func publish(r *http.Request) *web.Response {
 		println("Saving "+topic)
 
 		db, closeDB, err := NewDatabase()
+		defer closeDB()
 		if err != nil {
 			panic(err)
 		}
@@ -153,21 +154,18 @@ func publish(r *http.Request) *web.Response {
 			panic(err)
 		}
 
-		publisher := NewHabitPublisher(topic)
+		publisher := NewHabitPublisher()
 
 		// Connect to the MQTT broker.
 		publisher.Connect()
 		defer publisher.Disconnect()
 
-		fmt.Println("Publishing, Topic:")
-		fmt.Println(topic)
-		fmt.Println("Publishing, Message:")
-		fmt.Println(rows)
 		// Publish the habits.
 		publisher.PublishHabits(rows)
 
 		data := map[string]interface{}{
 			"topic": topic,
+			"last_publish": time.Now(),
 		}		
 
 		return  web.HTML(http.StatusOK, html, "publish.html", data, nil)
@@ -220,7 +218,7 @@ func habits(r *http.Request) *web.Response {
 		if err != nil {
 			panic(err)
 		}
-		publisher := NewHabitPublisher("go_habits")
+		publisher := NewHabitPublisher()
 		publisher.Connect()
 		defer publisher.Disconnect()
 		rows, err := db.GetAllHabits()

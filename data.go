@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"gorm.io/driver/sqlite"
@@ -58,6 +59,56 @@ func NewDatabase() (*Database, func(), error) {
 	return &Database{
 		db: db,
 	}, closeFunc, nil
+}
+
+func (d *Database) checkAndUpdateHabits() error {
+	log.Printf("checking")
+
+	// Initialize database
+	db, closeDB, err := NewDatabase()
+	if err != nil {
+		log.Printf("Error initializing database: %s", err)
+	}
+
+	defer closeDB()
+
+	// Fetch all active habits
+	rows, err := db.GetAllHabits(true)
+	if err != nil {
+		log.Printf("Error fetching habits: %s", err)
+	}
+
+	// Check each habit's status
+	for _, habit := range rows {
+		fmt.Println("Checking :"+habit.Name)
+
+		if needsCompletion(habit) {
+			fmt.Println("ACTION_NEEDED")
+
+			habit.NeedsCompletion = true;
+
+			err := db.SetHabitNeedCompletion(habit.ID, true)
+
+			if(err != nil){
+				log.Printf("ERROR ERROR saving check habit: %s", err)
+				return err;
+			}
+
+			// Handle what to do if habit needs completion. For instance, notify the user.
+		}else{
+			// This extended update might not be needed always(just after config update)
+			habit.NeedsCompletion = false;
+
+			err := db.SetHabitNeedCompletion(habit.ID, false)
+
+			if(err != nil){
+				log.Printf("ERROR ERROR saving check habit: %s", err)
+				return err;
+			}
+			fmt.Println("ALL GOOD"+habit.Name)
+		}
+	}
+	return nil
 }
 
 
