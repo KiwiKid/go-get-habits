@@ -1,5 +1,8 @@
 PACKAGES := $(shell go list ./...)
 name := $(shell basename ${PWD})
+DOCKER_USERNAME := "nzkiwikid"
+TAG             := "latest"
+
 
 all: help
 
@@ -37,6 +40,12 @@ build: test
 .PHONY: docker-build
 docker-build: test
 	GOPROXY=direct docker buildx build -t ${name} .
+
+## docker-push: push docker container to Docker Hub
+.PHONY: docker-push
+docker-push: docker-build
+	docker tag ${name} ${DOCKER_USERNAME}/${name}:${TAG}
+	docker push ${DOCKER_USERNAME}/${name}:${TAG}
 
 ## docker-run: run project in a container
 .PHONY: docker-run

@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"strconv"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -50,8 +52,12 @@ func (p *HabitPublisher) getMqttTopic(rawTopic string, posfix string)string{
 
 
 func NewHabitPublisher() *HabitPublisher {
-	broker := "192.168.1.5"
-	port := 1883
+	broker := GetEnvWithDefault("MQTT_URL", "localhost")
+	portStr := GetEnvWithDefault("MQTT_PORT", "1883")
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		log.Fatalf("Failed to convert port string to integer: %v", err)
+	}
 	opts := mqtt.NewClientOptions().AddBroker(fmt.Sprintf("%s:%d", broker, port))
 	client := mqtt.NewClient(opts)
 	return &HabitPublisher{Client: client, Topic: "go_habits"}

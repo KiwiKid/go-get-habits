@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"os"
 	"strings"
 )
 
@@ -35,4 +37,15 @@ func checkAndPublishAll(){
 	}
 	// Publish the habits.
 	publisher.PublishHabits(rows)
+}
+
+
+func GetEnvWithDefault(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		log.Printf("Environment variable %s not found. Using default value: %s", key, defaultValue)
+		return defaultValue
+	}
+	log.Printf("Found environment variable %s with value: %s", key, value)
+	return value
 }

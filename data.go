@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -118,7 +119,13 @@ func (d *Database) CreateHabit(h *Habit) error {
 
 func (d *Database) GetAllHabits(isActive ...bool) ([]Habit, error) {
     var habits []Habit
-    db := d.db
+
+    // Check if the database is initialized
+    if d.db == nil {
+        return nil, errors.New("database is not initialized")
+    }
+
+    db := d.db // Define and initialize the db variable
     if len(isActive) > 0 && isActive[0] {
         db = db.Where("is_active = ?", true)
     }

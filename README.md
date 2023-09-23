@@ -13,7 +13,8 @@ Written with go, tailwind and htmx
   vet           vet code
   test          run unit tests
   build         build a binary
-  dockerbuild   build project into a docker container image
+  docker-build   build project into a docker container image
+  docker-push   push docker image to dockerhub
   start         build and run local project
   css           build tailwindcss
   css-watch     watch build tailwindcss
