@@ -83,12 +83,24 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 		stateTopic := p.getMqttTopic(habit.Name, "state")
 		setTopic := p.getMqttTopic(habit.Name, "set")
 
+		isDevStr := GetEnvWithDefault("IS_DEV", "false")
+		isDev := false
+		defaultDevice := "habits"
+		if isDevStr == "true" {
+			isDev = true
+			defaultDevice = "habits_dev"
+		}
+	
 
-		deviceName := GetEnvWithDefault("HA_DEVICE_NAME", "habits")
+		deviceName := GetEnvWithDefault("HA_DEVICE_NAME", defaultDevice)
 		deviceId := "habV4"
 		if(len(habit.Group) > 0){
-			deviceName = habit.Group
-			deviceId = toSnakeCase(habit.Group)
+			if(isDev){
+				deviceName = habit.Group + "_dev"
+			}else{
+				deviceName = habit.Group
+			}
+			deviceId = toSnakeCase(deviceName)
 		}
 
 		configMessage := HabitConfig{
