@@ -84,7 +84,7 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 		setTopic := p.getMqttTopic(habit.Name, "set")
 
 
-		deviceName := "habits"
+		deviceName := GetEnvWithDefault("HA_DEVICE_NAME", "habits")
 		deviceId := "habV4"
 		if(len(habit.Group) > 0){
 			deviceName = habit.Group

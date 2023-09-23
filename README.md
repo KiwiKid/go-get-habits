@@ -19,3 +19,6 @@ Written with go, tailwind and htmx
   css           build tailwindcss
   css-watch     watch build tailwindcss
 ```
+
+MQTT_URL (default localhost)
+MQTT_PORT (default 1883)
