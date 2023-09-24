@@ -50,7 +50,7 @@ docker-push: docker-build
 ## docker-run: run project in a container
 .PHONY: docker-run
 docker-run:
-	docker run -it --rm -p 8080:8080 ${name}
+	docker run -it --rm -p 8122:8122 ${name}
 
 ## start: build and run local project
 .PHONY: start

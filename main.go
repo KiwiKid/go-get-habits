@@ -150,7 +150,7 @@ func main() {
 	logger := log.New(os.Stdout, "http: ", log.LstdFlags)
 	middleware := tracing(nextRequestID)(logging(logger)(router))
 
-	port := gotoolbox.GetEnvWithDefault("PORT", "8080")
+	port := gotoolbox.GetEnvWithDefault("PORT", "8122")
 	logger.Println("listening on http://localhost:" + port)
 	
 
