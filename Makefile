@@ -2,6 +2,7 @@ PACKAGES := $(shell go list ./...)
 name := $(shell basename ${PWD})
 DOCKER_USERNAME := "nzkiwikid"
 TAG             := "latest"
+DATA_VOLUME_NAME=sqlite-data
 
 
 all: help
@@ -41,6 +42,11 @@ build: test
 docker-build: test
 	GOPROXY=direct docker buildx build -t ${name} .
 
+.PHONY: docker-db-init
+docker-db-init: 
+	docker volume create --name=sqlite-data
+	
+
 ## docker-push: push docker container to Docker Hub
 .PHONY: docker-push
 docker-push: docker-build
@@ -50,7 +56,7 @@ docker-push: docker-build
 ## docker-run: run project in a container
 .PHONY: docker-run
 docker-run:
-	docker run -it --rm -p 8122:8122 ${name}
+	docker run -it --rm -p 8122:8122 -v ${DATA_VOLUME_NAME}:/app/db ${name}
 
 ## start: build and run local project
 .PHONY: start
