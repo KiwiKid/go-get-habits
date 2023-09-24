@@ -126,6 +126,7 @@ func main() {
 
 	router.Handle("/habit/edit", web.Action(habitEdit))
 	router.Handle("/habit/edit/", web.Action(habitEdit))
+	router.Handle("/habit/edit/group", web.Action(habitGroup))
 
 	router.Handle("/habit", web.Action(habits))
 	router.Handle("/habit/", web.Action(habits))

@@ -1,0 +1,12 @@
+<form method="post" hx-post="/habit/edit/group/{{.ID}}" hx-target="this">
+    <!-- Your other form fields here -->
+
+    <label for="Group">Group:</label>
+    <select id="Group" name="Group">
+        {{range .groups}}
+            <option value="{{.ID}}">{{.Name}}</option>
+        {{end}}
+    </select>
+
+    <input type="submit" value="Update">
+</form>

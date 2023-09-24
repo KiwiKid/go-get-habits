@@ -1,53 +1,29 @@
-<div id="datarow-{{.ID}}" class="border-b dark:border-neutral-500 w-full   {{if .IsActive}} bg-red-200 {{else}} grayscale-0 {{end}} ">
-  <div class="flex ">
-    <div class="px-6 py-4 w-1/8">
-      {{if .IsActive}}
-      {{else}}
-      <span role="img" aria-label="cross">(inactive)</span>
-      {{end}}
-      {{if .NeedsCompletion}}
-      <span role="img" aria-label="tick">✔️</span>
-
-      {{else}}
-      <span role="img" aria-label="cross">❌</span>
-      {{end}}
-    </div>
-    <div class="px-6 py-4 w-1/4" title="{{.LastComplete | formatDate}}">
-      {{.LastComplete | relativeTime}}
-    </div>
-    <div class="px-6 py-4 w-36">{{.Name}}</div>
-
-    <div class="px-6 py-4 w-1/8"></div>
-    <div class="px-6 py-4 w-1/8">Every {{.ResetValue}} {{.ResetFrequency}}</div>
-    <div class="px-6 py-4 w-1/8">{{.Group}}</div>
-    <div class="flex justify-end px-1 py-1 ml-4 w-1/8">
-
-      <a
-        hx-get="/habit/edit/{{.ID}}"
-        hx-target="#datarow-{{.ID}}"
-        hx-swap="outerHTML"
-        hx-indicator="#processing"
-        class="hover:underline text-blue-700"
-        href=""
-      >
-        Edit
-      </a>
-      <a
-        hx-delete="/habit/{{.ID}}"
-        hx-target="#habits"
-        hx-confirm="Are you sure you want to delete {{.Name}}?"
-        hx-indicator="#processing"
-        class="hover:underline text-blue-700"
-        href=""
-      >
-        Delete
-      </a>
-      <a
-        hx-post="/habit/complete/{{.ID}}"
-        hx-indicator="#processing"
-        class="inline-flex items-center h-8 px-4 m-2 text-sm text-red-100 transition-colors duration-150 bg-red-700 rounded-lg focus:shadow-outline hover:bg-red-800"
-        >Complete [{{.ID}}]</a
-      >
-    </div>
-  </div>
+<div id="datarow-{{.ID}}" class="flex items-center items-center border-b dark:border-neutral-500 w-full {{if .IsActive}} bg-red-200 {{else}} grayscale-0 {{end}}">
+      <!-- Status and completion indicators -->
+      <div class="flex-shrink-0 flex-grow-0 px-6 py-4" style="flex-basis: 6.66%;">
+          {{if not .IsActive}}
+          <span role="img" aria-label="cross">(inactive)</span>
+          {{end}}
+          {{if .NeedsCompletion}}
+          <span role="img" aria-label="tick">✔️</span>
+          {{else}}
+          <span role="img" aria-label="cross">❌</span>
+          {{end}}
+      </div>
+      <!-- Last complete date -->
+      <div class="flex-shrink-0 flex-grow-2 px-6 py-4" style="flex-basis: 25%;" title="{{.LastComplete | formatDate}}">
+          {{.LastComplete | relativeTime}}
+      </div>
+      <!-- Name -->
+      <div class="flex-shrink-0 flex-grow-2 px-6 py-4" style="flex-basis: 25%;">{{.Name}}</div>
+      <!-- Reset Value and Frequency -->
+      <div class="flex-shrink-0 flex-grow-2 px-6 py-4" style="flex-basis: 25%;">Every {{.ResetValue}} {{.ResetFrequency}}</div>
+      <!-- Group -->
+      <div class="flex-shrink-0 flex-grow-2 px-6 py-4" style="flex-basis: 25%;">{{.Group}}</div>
+      <!-- Actions -->
+      <div class="flex-shrink-0 flex-grow-2 px-6 py-4" style="flex-basis: 25%;">
+          <a hx-get="/habit/edit/{{.ID}}" hx-target="#datarow-{{.ID}}" hx-swap="outerHTML" hx-indicator="#processing" class="hover:underline text-blue-700" href="">Edit</a>
+          <a hx-delete="/habit/{{.ID}}" hx-target="#habits" hx-confirm="Are you sure you want to delete {{.Name}}?" hx-indicator="#processing" class="hover:underline text-blue-700" href="">Delete</a>
+          <a hx-post="/habit/complete/{{.ID}}" hx-indicator="#processing" class="inline-flex items-center h-8 px-4 m-2 text-sm text-red-100 transition-colors duration-150 bg-red-700 rounded-lg focus:shadow-outline hover:bg-red-800">Complete [{{.ID}}]</a>
+      </div>
 </div>

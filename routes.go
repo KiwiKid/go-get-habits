@@ -246,9 +246,16 @@ func habits(r *http.Request) *web.Response {
 			// handle error
 		}
 		row.ResetValue = resetValue
-		row.Group = r.Form.Get("Group")
+		newGroup := r.Form.Get("NewGroup")
+		if len(newGroup) > 0 {
+			row.Group = r.Form.Get("NewGroup")
+		}else{
+			row.Group = r.Form.Get("Group")
+		}
+		
 		row.IsActive = len(r.Form.Get("IsActive")) > 0
 		println("Saving")
+		println(row)
 		db.EditHabit(idInt, row)
 
 		return web.HTML(http.StatusOK, html, "row.html", row, nil)
@@ -259,18 +266,24 @@ func habits(r *http.Request) *web.Response {
 		name := r.Form.Get("Name")
 		resetFrequency := ResetFrequency(r.Form.Get("ResetFrequency"))
 		resetValue, err := strconv.Atoi(r.Form.Get("ResetValue"))
+		group := r.Form.Get("NewGroup")
+		if len(group) > 0 {
+			println("new group")
+		}else{
+			group = r.Form.Get("Group")
+		}
 		if err != nil {
 			// handle error
 		}
-		group := r.Form.Get("Group")
+		// group := r.Form.Get("Group")
 		isActive := len(r.Form.Get("IsActive")) > 0
 	
 		newHabit := Habit{
 			Name:           name,
 			ResetFrequency: resetFrequency,
 			ResetValue:     resetValue,
-			Group:          group,
 			IsActive:       isActive,
+			Group: group,
 			// Add any other required fields if they exist.
 		}
 	
@@ -315,6 +328,65 @@ func index(r *http.Request) *web.Response {
 //	return web.HTML(http.StatusOK, html, "company-add.html", data, nil)
 //}
 
+func habitGroup(r *http.Request) *web.Response {
+	
+	switch r.Method {
+	case http.MethodGet:
+		db, closeDB, err := NewDatabase()
+		if err != nil {
+			panic(err)
+		}
+		defer closeDB()
+		groups, getGroupsErr := db.GetAllGroups()
+		if getGroupsErr != nil {
+			panic(getGroupsErr)
+		}
+		data := map[string]interface{}{
+			"topic": "go_habits",
+			"groups": groups,
+		}
+	
+		return web.HTML(http.StatusOK, html, "row-group-edit.html", data, nil)
+	case http.MethodPost:
+		db, closeDB, err := NewDatabase()
+		if err != nil {
+			panic(err)
+		}
+		defer closeDB()
+		id, _ := web.PathLast(r)
+		var idInt uint
+		_, idError := fmt.Sscanf(id, "%d", &idInt)
+		
+		if idError != nil {
+			fmt.Println("Error:", err)
+		}
+	
+		r.ParseForm()
+		group := r.Form.Get("Group")
+	
+		//		row.Company = r.Form.Get("company")
+		setErr := db.SetGroup(idInt, group)
+		if setErr != nil {
+			panic(setErr)
+		}
+	
+		groups, getGroupsErr := db.GetAllGroups()
+		if getGroupsErr != nil {
+			panic(getGroupsErr)
+		}
+	
+		data := map[string]interface{}{
+			"topic": "go_habits",
+			"groups": groups,
+		}
+	
+		return web.HTML(http.StatusOK, html, "row-group.html", data, nil)
+	}
+
+	return web.Empty(http.StatusNotImplemented)
+	
+}
+
  // /GET habit/edit/{id}
 func habitEdit(r *http.Request) *web.Response {
 	fmt.Println("index:")
@@ -335,7 +407,21 @@ func habitEdit(r *http.Request) *web.Response {
 	if err != nil {
 		panic(err)
 	}
-	return web.HTML(http.StatusOK, html, "row-edit.html", row, nil)
+
+	groups, getGroupsErr := db.GetAllGroups()
+	if getGroupsErr != nil {
+		panic(getGroupsErr)
+	}
+
+	data := map[string]interface{}{
+		"Row": row,
+		"Groups": groups,
+	}
+
+	fmt.Println("Data:", data)
+	fmt.Println("Row:", row)
+	fmt.Println("Groups:", groups)
+	return web.HTML(http.StatusOK, html, "row-edit.html", data, nil)
 }
 
 // GET /company

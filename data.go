@@ -170,3 +170,23 @@ func (d *Database) CompleteHabit(id uint) error {
 
 	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(preRow).Error
 }
+
+func (d *Database) SetGroup(id uint, group string) error {
+
+	preRow, err := d.GetHabitByID(id)
+	if err != nil {
+		panic(err)
+	}
+
+	preRow.Group = group
+
+	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(preRow).Error
+}
+
+func (d *Database) GetAllGroups() ([]string, error) {
+    var groupNames []string
+    if err := d.db.Raw("SELECT DISTINCT IFNULL(`group`, '') FROM habits").Scan(&groupNames).Error; err != nil {
+        return nil, err
+    }
+    return groupNames, nil
+}

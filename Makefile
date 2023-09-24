@@ -55,7 +55,7 @@ docker-run:
 ## start: build and run local project
 .PHONY: start
 start: build
-	air
+	IS_DEV=true MQTT_URL=192.168.1.5 air
 
 ## css: build tailwindcss
 .PHONY: css
