@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/sqlite"
@@ -37,7 +38,11 @@ type Database struct {
 }
 
 func NewDatabase() (*Database, func(), error) {
-	db, err := gorm.Open(sqlite.Open("data/habits.db"), &gorm.Config{})
+	if _, err := os.Stat("db"); os.IsNotExist(err) {
+		os.Mkdir("db", 0755)
+	}
+	
+	db, err := gorm.Open(sqlite.Open("db/habits.db"), &gorm.Config{})
 	if err != nil {
 		return nil, nil, err
 	}
