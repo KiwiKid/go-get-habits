@@ -85,20 +85,18 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 
 		isDevStr := GetEnvWithDefault("IS_DEV", "false")
 		isDev := false
-		defaultDevice := "habits"
 		if isDevStr == "true" {
 			isDev = true
-			defaultDevice = "habits_dev"
 		}
 	
 
-		deviceName := GetEnvWithDefault("HA_DEVICE_NAME", defaultDevice)
+		deviceName := GetEnvWithDefault("HA_DEVICE_NAME", "")
 		deviceId := "habV4"
 		if(len(habit.Group) > 0){
 			if(isDev){
-				deviceName = habit.Group + "_dev"
+				deviceName = "Habits " + habit.Group + " [dev]"
 			}else{
-				deviceName = habit.Group
+				deviceName = "Habits "+ habit.Group
 			}
 			deviceId = toSnakeCase(deviceName)
 		}
