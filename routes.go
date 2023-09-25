@@ -18,13 +18,13 @@ func habitAdd(r *http.Request) *web.Response {
 		panic(err)
 	}
 	defer closeDB()
-	habit := &Habit{
+	/*habit := &Habit{
 		Name:           "Exercise",
 		ResetFrequency: Daily,
 	}
 	if err := db.CreateHabit(habit); err != nil {
 		panic(err)
-	}
+	}*/
 	habits, err := db.GetAllHabits()
 	return web.HTML(http.StatusOK, html, "habit-add.html", habits, nil)
 }
@@ -196,13 +196,19 @@ func habits(r *http.Request) *web.Response {
 			}
 			return  web.HTML(http.StatusNotFound, html, "habits.html", rows, nil)
 		}
+		hab, getHabErr := db.GetHabitByID(idInt)
+		if getHabErr != nil {
+			panic(getHabErr)
+		}
 		err = db.DeleteHabitByID(idInt)
 		if err != nil {
 			panic(err)
 		}
 		publisher := NewHabitPublisher()
 		publisher.Connect()
+		
 		defer publisher.Disconnect()
+		publisher.DeleteHabit(*hab)
 		rows, err := db.GetAllHabits()
 		if err != nil {
 			panic(err)

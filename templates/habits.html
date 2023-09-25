@@ -15,12 +15,9 @@
 
             <button 
             class="inline-flex items-center h-8 px-4 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
-
-            hx-post="/check" hx-trigger="click, every 60s" hx-target="#habits">
-              Manual-Check (auto every minute)
-              <!-- This element will issue a GET request to /path/to/your/endpoint every 5 seconds -->
+            hx-post="/check" hx-trigger="click" hx-target="#habits">
+              Manual-Check
             </button>
-          
 
           <div class="flex justify-end">
             <button
