@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -114,6 +115,87 @@ func checkAndPublish(r *http.Request) *web.Response {
 		panic(err)
 	}
 	return  web.HTML(http.StatusFound, html, "habits.html", freshRows, nil)
+}
+
+func notes(r *http.Request) *web.Response {
+    switch(r.Method){
+	case "GET":
+
+		db, closeDB, err := NewDatabase()
+		defer closeDB()
+		if err != nil {
+			panic(err)
+		}
+
+		notes, err := db.getAllNotes()
+		if err != nil {
+			panic(err)
+		}
+
+
+		publisher := NewHabitPublisher()
+
+		// Connect to the MQTT broker.
+		publisher.Connect()
+		defer publisher.Disconnect()
+
+		publisher.PublishNotes(notes)
+
+		data := map[string]interface{}{
+			"notes": notes,
+			"message": "loaded",
+		}
+
+        return web.HTML(http.StatusOK, html,  "notes.html", data, nil);
+    
+    case "POST":
+        if err := r.ParseForm(); err != nil {
+			log.Printf("Error parsing form: %v", err)
+			data := map[string]interface{}{
+				"error": err,
+			}
+			return web.HTML(http.StatusUnprocessableEntity, html, "notes.html", data, nil)
+		}
+
+
+
+		
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+
+		/*noteData := map[string]interface{}{
+			"title": title,
+			"content": content,
+		}*/
+		
+		db, closeDB, err := NewDatabase()
+		defer closeDB()
+		if err != nil {
+			panic(err)
+		}
+
+		createErr := db.CreateNote(&Note{
+			Title: title,
+			Content: content,
+		})
+
+		if createErr != nil {
+			panic(createErr)
+		}
+
+		notes, err := db.getAllNotes()
+		if err != nil {
+			panic(err)
+		}
+
+		data := map[string]interface{}{
+			"notes": notes,
+			"message": "saved",
+		}
+		
+        return  web.HTML(http.StatusOK, html, "notes.html", data, nil)
+	}
+    return web.Empty(http.StatusNotImplemented)
 }
 
 func publish(r *http.Request) *web.Response {

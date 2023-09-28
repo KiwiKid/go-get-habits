@@ -32,7 +32,15 @@ type Habit struct {
 	IsActive       bool           `gorm:"type:boolean"`
 	LastComplete   time.Time      `gorm:"type:datetime"`
 	NeedsCompletion bool	      `gorm:"type:boolean"`
+	//PerferedNotificationTime time.Time	  `gorm:"type:datetime"`
 }
+
+type Note struct {
+	ID             uint           `gorm:"primarykey"`
+	Title string `gorm:"type:varchar(1024)"`
+	Content string `gorm:"type:varchar(1024)"`
+}
+
 type Database struct {
 	db *gorm.DB
 }
@@ -48,6 +56,10 @@ func NewDatabase() (*Database, func(), error) {
 	}
 
 	if err := db.AutoMigrate(&Habit{}); err != nil {
+		return nil, nil, err
+	}
+
+	if err := db.AutoMigrate(&Note{}); err != nil {
 		return nil, nil, err
 	}
 
@@ -154,6 +166,30 @@ func (d *Database) GetHabitByID(id uint) (*Habit, error) {
 func (d *Database) DeleteHabitByID(id uint) error {
 	return d.db.Delete(&Habit{}, id).Error
 }
+
+func (d *Database) DeleteNoteByID(id uint) error {
+	return d.db.Delete(&Note{}, id).Error
+}
+
+
+func (d *Database) CreateNote(n *Note) error {
+	return d.db.Create(n).Error
+}
+
+func (d *Database) getAllNotes() ([]Note, error) {
+	var notes []Note
+
+	if d.db == nil {
+        return nil, errors.New("database is not initialized")
+    }
+
+    if err := d.db.Find(&notes).Error; err != nil {
+        return nil, err
+    }
+    return notes, nil
+}
+
+
 
 func (d *Database) EditHabit(id uint, updatedHabit *Habit) error {
 	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(updatedHabit).Error

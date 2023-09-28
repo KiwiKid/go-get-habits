@@ -121,6 +121,8 @@ func main() {
 	router.Handle("/publish", web.Action(publish))
 	router.Handle("/check", web.Action(checkAndPublish))
 
+	router.Handle("/notes", web.Action(notes))
+
 	router.Handle("/habit/add", web.Action(habitAdd))
 	router.Handle("/habit/add/", web.Action(habitAdd))
 

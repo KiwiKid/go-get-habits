@@ -17,6 +17,15 @@
         <br/>
         <span class="text-xl">Habits v0.2</span>
         <div>{{ template "habits.html" . }}</div>
+        <div
+          hx-get="/notes"
+          hx-target="this"
+          hx-swap="outerHTML"
+          hx-indicator="#processing"
+          hx-trigger="load"
+          class=""
+          href=""
+        >Loading..</div>
       </div>
     </main>
   </body>
