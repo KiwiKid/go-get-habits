@@ -28,22 +28,30 @@ func formatDate(t time.Time) string {
 	return fmt.Sprintf("%s %d%s @ %s", monthName, day, suffix, hourMinute)
 }
 
-
 func relativeTime(t time.Time) string {
 	duration := time.Since(t)
 
 	if duration < time.Minute {
-		return "just now"
+		return fmt.Sprintf("now - %d secs ago", int(duration.Seconds()))
 	} else if duration < time.Hour {
 		return fmt.Sprintf("%d minutes ago", int(duration.Minutes()))
 	} else if duration < 24*time.Hour {
 		return fmt.Sprintf("%d hours ago", int(duration.Hours()))
 	} else if duration < 48*time.Hour {
 		return "yesterday"
-	} else {
+	} else if duration < 7*24*time.Hour {
 		return fmt.Sprintf("%d days ago", int(duration.Hours()/24))
+	} else if duration < 30*24*time.Hour {
+		weeks := int(duration.Hours() / (7 * 24))
+		return fmt.Sprintf("%d weeks ago", weeks)
+	} else if duration < 18*30*24*time.Hour {
+		months := int(duration.Hours() / (30 * 24))
+		return fmt.Sprintf("%d months ago", months)
+	} else {
+		return "ages ago"
 	}
 }
+
 /*
 
 // Custom function to format date
@@ -57,7 +65,7 @@ func formatDate(dateStr string) string {
 // ParseTemplates parses the templates from the provided file system and attaches custom functions
 func ParseTemplates(templateFS fs.FS) (*template.Template, error) {
 	funcs := template.FuncMap{
-		"formatDate": formatDate,
+		"formatDate":   formatDate,
 		"relativeTime": relativeTime,
 	}
 

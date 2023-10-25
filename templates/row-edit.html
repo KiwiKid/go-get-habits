@@ -1,5 +1,6 @@
 <div id="datarow-{{.Row.ID}}" class="flex border-b dark:border-neutral-500">
-    <div class="whitespace-nowrap px-6 py-4 w-1/8">
+    <div  style="width: 50%">
+    <div class="whitespace-nowrap px-6 py-4 ">
         <label for="IsActive">Active:</label>
         <input
             type="checkbox"
@@ -9,43 +10,49 @@
             value="{{.Row.IsActive}}"
             {{if .Row.IsActive}}checked{{end}}
         />
+        <div>
+            ever {{.Row.ResetValue}} {{.Row.ResetFrequency}}
+            {{ if and (eq .Row.StartHour 0) (eq .Row.StartMinute 0) (eq .Row.EndHour 0) (eq .Row.EndMinute 0) }}
+                - (24/7)
+            {{ else }}
+                - between {{.Row.StartHour}}:{{.Row.StartMinute}} and {{.Row.EndHour}}:{{.Row.EndMinute}})
+            {{ end }}
+        </div>
     </div>
+    
    
-  <div class="whitespace-nowrap px-6 py-4 w-1/8">
+  <div class="whitespace-nowrap px-6 py-4 ">
+    <label for="Name">Habit Name:</label>
       <input
           type="text"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           data-include-edit="{{.Row.ID}}"
           name="Name"
           value="{{.Row.Name}}"
       />
   </div>
   
+  <div class="whitespace-nowrap px-6 py-4 ">
+    <div>
+        <label for="Name">Habit Timing:</label>
+        <input
+            type="number"
+            class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            data-include-edit="{{.Row.ID}}"
+            name="ResetValue"
+            value="{{.Row.ResetValue}}"
+        />
+        <select data-include-edit="{{.Row.ID}}" name="ResetFrequency" id="ResetFrequency">
+            <option value="minutes"  {{if eq .Row.ResetFrequency "minutes"}}selected{{end}}>Minutes</option>
+            <option value="hourly"  {{if eq .Row.ResetFrequency "hourly"}}selected{{end}}>Hourly</option>  
+            <option value="daily" {{if eq .Row.ResetFrequency "daily"}}selected{{end}}>Daily</option>
+            <option value="weekly" {{if eq .Row.ResetFrequency "weekly"}}selected{{end}}>Weekly</option>
+            <option value="monthly" {{if eq .Row.ResetFrequency "monthly"}}selected{{end}}>Monthly</option>
+        </select>
 
-  <div>
-    (every {{.Row.ResetValue}} {{.Row.ResetFrequency}})
-  </div>
-  <div class="whitespace-nowrap px-6 py-4 w-1/8">
-      <input
-          type="number"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          data-include-edit="{{.Row.ID}}"
-          name="ResetValue"
-          value="{{.Row.ResetValue}}"
-      />
-  </div>
-
-  <div class="whitespace-nowrap px-6 py-4 w-1/8">
-      <select data-include-edit="{{.Row.ID}}" name="ResetFrequency" id="ResetFrequency">
-          <option value="minutes"  {{if eq .Row.ResetFrequency "minutes"}}selected{{end}}>Minutes</option>
-          <option value="hourly"  {{if eq .Row.ResetFrequency "hourly"}}selected{{end}}>Hourly</option>  
-          <option value="daily" {{if eq .Row.ResetFrequency "daily"}}selected{{end}}>Daily</option>
-          <option value="weekly" {{if eq .Row.ResetFrequency "weekly"}}selected{{end}}>Weekly</option>
-          <option value="monthly" {{if eq .Row.ResetFrequency "monthly"}}selected{{end}}>Monthly</option>
-      </select>
-
-  </div>
-  <div class="whitespace-nowrap px-6 py-4 w-1/8">
+    </div>
+</div>
+  <div class="whitespace-nowrap px-6 py-4 ">
     Group:
     <select id="Group" name="Group" data-include-edit="{{.Row.ID}}">
         <option value="">-- Select existing Group --</option>
@@ -59,8 +66,71 @@
         <input type="text" id="newGroup" name="NewGroup" data-include-edit="{{.Row.ID}}"/>
     </details>
 </div>
+</div>
+<div style="width: 50%">
+    <div class="whitespace-nowrap px-6 py-4 w-1/3">
+        Blockout times (24 hour format):
+        <div>
+            Current: 
+            {{ if and (eq .Row.StartHour 0) (eq .Row.StartMinute 0) (eq .Row.EndHour 0) (eq .Row.EndMinute 0) }}
+                [24/7]
+            {{ else }}
+                [between {{.Row.StartHour}}:{{.Row.StartMinute}} and {{.Row.EndHour}}:{{.Row.EndMinute}}]
+            {{ end }}
+        </div>
+    <div class="whitespace-nowrap px-6 py-4 w-1/3">
+        <label for="StartHour-{{.Row.ID}}">Start (h, m):</label>
+        <input
+            type="number"
+            min="0"
+            max="23"
+            placeholder="0-23"
+            class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            data-include-edit="{{.Row.ID}}"
+            name="StartHour"
+            value="{{.Row.StartHour}}"
+        />
 
-  <div class="whitespace-nowrap px-1 py-1 w-1/8">
+        <input
+        type="number"
+        min="0"
+        max="59"
+        placeholder="0-59"
+        class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        data-include-edit="{{.Row.ID}}"
+        name="StartMinute"
+        value="{{.Row.StartMinute}}"
+    />
+        
+    </div>
+
+    <div class="whitespace-nowrap px-6 py-4  w-1/3">
+        <label for="EndHour-{{.Row.ID}}">End:  (h, m):</label>
+        <input
+            type="number"
+            min="0"
+            max="23"
+            placeholder="0-23"
+            class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            data-include-edit="{{.Row.ID}}"
+            name="EndHour"
+            value="{{.Row.EndHour}}"
+        />
+        <input
+        type="number"
+        min="0"
+        max="59"
+        class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        data-include-edit="{{.Row.ID}}"
+        name="EndMinute"
+        value="{{.Row.EndMinute}}"
+    />
+        
+    </div>
+</div>
+
+
+  <div class="whitespace-nowrap px-1 py-1 ">
       <a
           hx-put="/habit/{{.Row.ID}}"
           hx-target="#datarow-{{.Row.ID}}"
@@ -72,7 +142,7 @@
       >Save</a>
   </div>
   
-  <div class="whitespace-nowrap px-1 py-1 w-1/8">
+  <div class="whitespace-nowrap px-1 py-1 ">
       <a
           hx-get="/habit/{{.Row.ID}}"
           hx-target="#datarow-{{.Row.ID}}"
@@ -82,5 +152,6 @@
           href=""
       >Cancel</a>
   </div>
+</div>
 
 </div>

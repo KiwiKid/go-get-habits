@@ -27,17 +27,34 @@ type Habit struct {
 	ID             uint           `gorm:"primarykey"`
 	Name           string         `gorm:"size:255"`
 	ResetFrequency ResetFrequency `gorm:"type:varchar(10)"`
-	ResetValue 	   int			  `gorm:"type:int"`
-	Group	 	   string	      `gorm:"size:255"`
-	IsActive       bool           `gorm:"type:boolean"`
-	LastComplete   time.Time      `gorm:"type:datetime"`
-	NeedsCompletion bool	      `gorm:"type:boolean"`
-	//PerferedNotificationTime time.Time	  `gorm:"type:datetime"`
+	ResetValue     int            `gorm:"type:int"`
+
+	Group           string    `gorm:"size:255"`
+	IsActive        bool      `gorm:"type:boolean"`
+	LastComplete    time.Time `gorm:"type:datetime"`
+	NeedsCompletion bool      `gorm:"type:boolean"`
+	StartHour       int       `gorm:"type:int"` // Value between 0-23
+	StartMinute     int       `gorm:"type:int"` // Value between 0-23
+	EndHour         int       `gorm:"type:int"`
+	EndMinute       int       `gorm:"type:int"` // Value between 0-23
+}
+
+type HabitUpdates struct {
+	ID             *uint
+	Name           *string
+	ResetFrequency *ResetFrequency
+	ResetValue     *int
+	Group          *string
+	IsActive       *bool
+	StartHour      *int
+	StartMinute    *int
+	EndHour        *int
+	EndMinute      *int
 }
 
 type Note struct {
-	ID             uint           `gorm:"primarykey"`
-	Title string `gorm:"type:varchar(1024)"`
+	ID      uint   `gorm:"primarykey"`
+	Title   string `gorm:"type:varchar(1024)"`
 	Content string `gorm:"type:varchar(1024)"`
 }
 
@@ -49,7 +66,7 @@ func NewDatabase() (*Database, func(), error) {
 	if _, err := os.Stat("db"); os.IsNotExist(err) {
 		os.Mkdir("db", 0755)
 	}
-	
+
 	db, err := gorm.Open(sqlite.Open("db/habits.db"), &gorm.Config{})
 	if err != nil {
 		return nil, nil, err
@@ -98,61 +115,58 @@ func (d *Database) checkAndUpdateHabits() error {
 
 	// Check each habit's status
 	for _, habit := range rows {
-		fmt.Println("Checking :"+habit.Name)
+		fmt.Println("Checking :" + habit.Name)
 
 		if needsCompletion(habit) {
 			fmt.Println("ACTION_NEEDED")
 
-			habit.NeedsCompletion = true;
+			habit.NeedsCompletion = true
 
 			err := db.SetHabitNeedCompletion(habit.ID, true)
 
-			if(err != nil){
+			if err != nil {
 				log.Printf("ERROR ERROR saving check habit: %s", err)
-				return err;
+				return err
 			}
 
 			// Handle what to do if habit needs completion. For instance, notify the user.
-		}else{
+		} else {
 			// This extended update might not be needed always(just after config update)
-			habit.NeedsCompletion = false;
+			habit.NeedsCompletion = false
 
 			err := db.SetHabitNeedCompletion(habit.ID, false)
 
-			if(err != nil){
+			if err != nil {
 				log.Printf("ERROR ERROR saving check habit: %s", err)
-				return err;
+				return err
 			}
-			fmt.Println("ALL GOOD"+habit.Name)
+			fmt.Println("ALL GOOD" + habit.Name)
 		}
 	}
 	return nil
 }
-
 
 func (d *Database) CreateHabit(h *Habit) error {
 	return d.db.Create(h).Error
 }
 
 func (d *Database) GetAllHabits(isActive ...bool) ([]Habit, error) {
-    var habits []Habit
+	var habits []Habit
 
-    // Check if the database is initialized
-    if d.db == nil {
-        return nil, errors.New("database is not initialized")
-    }
+	// Check if the database is initialized
+	if d.db == nil {
+		return nil, errors.New("database is not initialized")
+	}
 
-    db := d.db // Define and initialize the db variable
-    if len(isActive) > 0 && isActive[0] {
-        db = db.Where("is_active = ?", true)
-    }
-    if err := db.Find(&habits).Error; err != nil {
-        return nil, err
-    }
-    return habits, nil
+	db := d.db // Define and initialize the db variable
+	if len(isActive) > 0 && isActive[0] {
+		db = db.Where("is_active = ?", true)
+	}
+	if err := db.Find(&habits).Error; err != nil {
+		return nil, err
+	}
+	return habits, nil
 }
-
-
 
 func (d *Database) GetHabitByID(id uint) (*Habit, error) {
 	fmt.Printf(`GetHabitByID`)
@@ -171,7 +185,6 @@ func (d *Database) DeleteNoteByID(id uint) error {
 	return d.db.Delete(&Note{}, id).Error
 }
 
-
 func (d *Database) CreateNote(n *Note) error {
 	return d.db.Create(n).Error
 }
@@ -180,25 +193,22 @@ func (d *Database) getAllNotes() ([]Note, error) {
 	var notes []Note
 
 	if d.db == nil {
-        return nil, errors.New("database is not initialized")
-    }
+		return nil, errors.New("database is not initialized")
+	}
 
-    if err := d.db.Find(&notes).Error; err != nil {
-        return nil, err
-    }
-    return notes, nil
+	if err := d.db.Find(&notes).Error; err != nil {
+		return nil, err
+	}
+	return notes, nil
 }
 
-
-
-func (d *Database) EditHabit(id uint, updatedHabit *Habit) error {
+func (d *Database) EditHabit(id uint, updatedHabit *HabitUpdates) error {
 	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(updatedHabit).Error
 }
 
 func (d *Database) SetHabitNeedCompletion(id uint, NeedsCompletion bool) error {
 	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(map[string]interface{}{"NeedsCompletion": NeedsCompletion}).Error
 }
-
 
 func (d *Database) CompleteHabit(id uint) error {
 
@@ -225,9 +235,9 @@ func (d *Database) SetGroup(id uint, group string) error {
 }
 
 func (d *Database) GetAllGroups() ([]string, error) {
-    var groupNames []string
-    if err := d.db.Raw("SELECT DISTINCT IFNULL(`group`, '') FROM habits").Scan(&groupNames).Error; err != nil {
-        return nil, err
-    }
-    return groupNames, nil
+	var groupNames []string
+	if err := d.db.Raw("SELECT DISTINCT IFNULL(`group`, '') FROM habits").Scan(&groupNames).Error; err != nil {
+		return nil, err
+	}
+	return groupNames, nil
 }

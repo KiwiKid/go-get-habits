@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jritsema/gotoolbox/web"
+	"gorm.io/gorm/logger"
 )
 
 // GET /company/add
@@ -33,36 +34,36 @@ func habitAdd(r *http.Request) *web.Response {
 func check(r *http.Request) *web.Response {
 	switch r.Method {
 	case http.MethodPost:
-			db, closeDB, err := NewDatabase()
-			if err != nil {
-				panic(err)
-			}
-			defer closeDB()
-			checkErr := db.checkAndUpdateHabits()
-
-			if(checkErr != nil){
-				panic(checkErr)
-			}
-
-			afterRows, err := db.GetAllHabits()
-			fmt.Println("afterRows")
-
-			for _, afterRow := range afterRows {
-				fmt.Println(afterRow.Name)
-
-				if(afterRow.NeedsCompletion){
-					fmt.Println("NeedsCompletion=true")
-				}else{
-					fmt.Println("NeedsCompletion=false")
-				}
-
-			}
-
-			if err != nil {
-				panic(err)
-			}
-			return  web.HTML(http.StatusOK, html, "habits.html", afterRows, nil)
+		db, closeDB, err := NewDatabase()
+		if err != nil {
+			panic(err)
 		}
+		defer closeDB()
+		checkErr := db.checkAndUpdateHabits()
+
+		if checkErr != nil {
+			panic(checkErr)
+		}
+
+		afterRows, err := db.GetAllHabits()
+		fmt.Println("afterRows")
+
+		for _, afterRow := range afterRows {
+			fmt.Println(afterRow.Name)
+
+			if afterRow.NeedsCompletion {
+				fmt.Println("NeedsCompletion=true")
+			} else {
+				fmt.Println("NeedsCompletion=false")
+			}
+
+		}
+
+		if err != nil {
+			panic(err)
+		}
+		return web.HTML(http.StatusOK, html, "habits.html", afterRows, nil)
+	}
 	return web.Empty(http.StatusNotImplemented)
 }
 
@@ -80,11 +81,10 @@ func habitCompleted(r *http.Request) *web.Response {
 		var idInt uint
 		_, idError := fmt.Sscanf(id, "%d", &idInt)
 		if idError != nil {
-			fmt.Println("Error:", err)
+			fmt.Println("Error:", idError)
 
 			return web.DataJSON(http.StatusNotFound, nil, map[string]string{"Content-Type": "application/json"})
 		}
-
 
 		db.CompleteHabit(idInt)
 
@@ -103,6 +103,7 @@ func habitCompleted(r *http.Request) *web.Response {
 }
 
 func checkAndPublish(r *http.Request) *web.Response {
+	log.Printf("\n\ncheckAndPublish - checkAndPublishAll\n\n")
 	checkAndPublishAll()
 
 	db, closeDB, err := NewDatabase()
@@ -114,11 +115,11 @@ func checkAndPublish(r *http.Request) *web.Response {
 	if err != nil {
 		panic(err)
 	}
-	return  web.HTML(http.StatusFound, html, "habits.html", freshRows, nil)
+	return web.HTML(http.StatusFound, html, "habits.html", freshRows, nil)
 }
 
 func notes(r *http.Request) *web.Response {
-    switch(r.Method){
+	switch r.Method {
 	case "GET":
 
 		db, closeDB, err := NewDatabase()
@@ -132,7 +133,6 @@ func notes(r *http.Request) *web.Response {
 			panic(err)
 		}
 
-
 		publisher := NewHabitPublisher()
 
 		// Connect to the MQTT broker.
@@ -142,14 +142,14 @@ func notes(r *http.Request) *web.Response {
 		publisher.PublishNotes(notes)
 
 		data := map[string]interface{}{
-			"notes": notes,
-			"message": "loaded",
+			"notes":   notes,
+			"message": "",
 		}
 
-        return web.HTML(http.StatusOK, html,  "notes.html", data, nil);
-    
-    case "POST":
-        if err := r.ParseForm(); err != nil {
+		return web.HTML(http.StatusOK, html, "notes.html", data, nil)
+
+	case "POST":
+		if err := r.ParseForm(); err != nil {
 			log.Printf("Error parsing form: %v", err)
 			data := map[string]interface{}{
 				"error": err,
@@ -157,9 +157,6 @@ func notes(r *http.Request) *web.Response {
 			return web.HTML(http.StatusUnprocessableEntity, html, "notes.html", data, nil)
 		}
 
-
-
-		
 		title := r.FormValue("title")
 		content := r.FormValue("content")
 
@@ -167,7 +164,7 @@ func notes(r *http.Request) *web.Response {
 			"title": title,
 			"content": content,
 		}*/
-		
+
 		db, closeDB, err := NewDatabase()
 		defer closeDB()
 		if err != nil {
@@ -175,7 +172,7 @@ func notes(r *http.Request) *web.Response {
 		}
 
 		createErr := db.CreateNote(&Note{
-			Title: title,
+			Title:   title,
 			Content: content,
 		})
 
@@ -189,13 +186,45 @@ func notes(r *http.Request) *web.Response {
 		}
 
 		data := map[string]interface{}{
-			"notes": notes,
+			"notes":   notes,
 			"message": "saved",
 		}
-		
-        return  web.HTML(http.StatusOK, html, "notes.html", data, nil)
+
+		return web.HTML(http.StatusOK, html, "notes.html", data, nil)
+	case "DELETE":
+		id, _ := web.PathLast(r)
+		var idInt uint
+		_, idError := fmt.Sscanf(id, "%d", &idInt)
+		if idError != nil {
+			fmt.Println("Error:", idError)
+
+			return web.DataJSON(http.StatusNotFound, nil, map[string]string{"Content-Type": "application/json"})
+		}
+		db, closeDB, err := NewDatabase()
+		defer closeDB()
+		if err != nil {
+			panic(err)
+		}
+		deleteErr := db.DeleteNoteByID(idInt)
+		if deleteErr != nil {
+			panic(deleteErr)
+		}
+
+		notes, err := db.getAllNotes()
+		if err != nil {
+			panic(err)
+		}
+
+		data := map[string]interface{}{
+			"notes":   notes,
+			"message": "saved",
+		}
+
+		return web.HTML(http.StatusOK, html, "notes.html", data, nil)
+
 	}
-    return web.Empty(http.StatusNotImplemented)
+
+	return web.Empty(http.StatusNotImplemented)
 }
 
 func publish(r *http.Request) *web.Response {
@@ -203,9 +232,9 @@ func publish(r *http.Request) *web.Response {
 	switch r.Method {
 	case http.MethodPost:
 		r.ParseForm()
-		
+
 		topic := r.Form.Get("Topic")
-		println("Saving "+topic)
+		println("Saving " + topic)
 
 		db, closeDB, err := NewDatabase()
 		defer closeDB()
@@ -228,22 +257,20 @@ func publish(r *http.Request) *web.Response {
 		publisher.PublishHabits(rows)
 
 		data := map[string]interface{}{
-			"topic": topic,
+			"topic":        topic,
 			"last_publish": time.Now(),
-		}		
+		}
 
-		return  web.HTML(http.StatusOK, html, "publish.html", data, nil)
+		return web.HTML(http.StatusOK, html, "publish.html", data, nil)
 	case http.MethodGet:
 		data := map[string]interface{}{
 			"topic": "go_habits",
 		}
 
-		return  web.HTML(http.StatusOK, html, "publish.html", data,  nil)
+		return web.HTML(http.StatusOK, html, "publish.html", data, nil)
 	}
 	return web.Empty(http.StatusNotImplemented)
 }
-
-
 
 // GET /company
 // GET /company/{id}
@@ -257,7 +284,7 @@ func habits(r *http.Request) *web.Response {
 	db, closeDB, err := NewDatabase()
 	var idInt uint
 	_, idError := fmt.Sscanf(id, "%d", &idInt)
-	
+
 	if err != nil {
 		fmt.Println("Error:", err)
 		return web.Empty(http.StatusInternalServerError)
@@ -269,14 +296,13 @@ func habits(r *http.Request) *web.Response {
 	case http.MethodDelete:
 		fmt.Println("Delete start")
 
-
 		if idError != nil {
 			fmt.Println("Error:", err)
 			rows, err := db.GetAllHabits()
 			if err != nil {
 				panic(err)
 			}
-			return  web.HTML(http.StatusNotFound, html, "habits.html", rows, nil)
+			return web.HTML(http.StatusNotFound, html, "habits.html", rows, nil)
 		}
 		hab, getHabErr := db.GetHabitByID(idInt)
 		if getHabErr != nil {
@@ -288,7 +314,7 @@ func habits(r *http.Request) *web.Response {
 		}
 		publisher := NewHabitPublisher()
 		publisher.Connect()
-		
+
 		defer publisher.Disconnect()
 		publisher.DeleteHabit(*hab)
 		rows, err := db.GetAllHabits()
@@ -326,38 +352,78 @@ func habits(r *http.Request) *web.Response {
 			panic(err)
 		}
 		r.ParseForm()
-		
-		row.Name = r.Form.Get("Name")
-		row.ResetFrequency = ResetFrequency(r.Form.Get("ResetFrequency"))
+
+		name := r.Form.Get("Name")
+		resetFrequency := ResetFrequency(r.Form.Get("ResetFrequency"))
+		startMinute, err := strconv.Atoi(r.Form.Get("StartMinute"))
+		log.Println("log.Print(startMinute)log.Print(startMinute)log.Print(startMinute)")
+		log.Println(startMinute)
+		log.Println(r.Form.Get("StartMinute"))
+		log.Println("====log.Print(startMinute)log.Print(startMinute)log.Print(startMinute)")
+		if err != nil {
+			panic(err)
+		}
+		row.StartMinute = startMinute
+		startHour, err := strconv.Atoi(r.Form.Get("StartHour"))
+		if err != nil {
+			panic(err)
+		}
+		row.StartHour = startHour
+
+		endMinute, err := strconv.Atoi(r.Form.Get("EndMinute"))
+		if err != nil {
+			panic(err)
+		}
+		row.EndMinute = endMinute
+
+		endHour, err := strconv.Atoi(r.Form.Get("EndHour"))
+		if err != nil {
+			panic(err)
+		}
+
 		resetValue, err := strconv.Atoi(r.Form.Get("ResetValue"))
 		if err != nil {
-			// handle error
+			panic(err)
 		}
-		row.ResetValue = resetValue
 		newGroup := r.Form.Get("NewGroup")
+		var group string
 		if len(newGroup) > 0 {
-			row.Group = r.Form.Get("NewGroup")
-		}else{
-			row.Group = r.Form.Get("Group")
+			group = r.Form.Get("NewGroup")
+		} else {
+			group = r.Form.Get("Group")
 		}
-		
-		row.IsActive = len(r.Form.Get("IsActive")) > 0
+
+		isActive := len(r.Form.Get("IsActive")) > 0
 		println("Saving")
 		println(row)
-		db.EditHabit(idInt, row)
+		db.db.Logger.LogMode(logger.Info)
 
+		updates := &HabitUpdates{
+			ID:             &row.ID,
+			Name:           &name,
+			ResetFrequency: &resetFrequency,
+			ResetValue:     &resetValue,
+			StartMinute:    &startMinute,
+			StartHour:      &startHour,
+			EndMinute:      &endMinute,
+			EndHour:        &endHour,
+			Group:          &group,
+			IsActive:       &isActive,
+		}
+		db.EditHabit(idInt, updates)
+		checkAndPublishAll()
 		return web.HTML(http.StatusOK, html, "row.html", row, nil)
 
 	case http.MethodPost:
 		r.ParseForm()
-	
+
 		name := r.Form.Get("Name")
 		resetFrequency := ResetFrequency(r.Form.Get("ResetFrequency"))
 		resetValue, err := strconv.Atoi(r.Form.Get("ResetValue"))
 		group := r.Form.Get("NewGroup")
 		if len(group) > 0 {
 			println("new group")
-		}else{
+		} else {
 			group = r.Form.Get("Group")
 		}
 		if err != nil {
@@ -365,17 +431,17 @@ func habits(r *http.Request) *web.Response {
 		}
 		// group := r.Form.Get("Group")
 		isActive := len(r.Form.Get("IsActive")) > 0
-	
+
 		newHabit := Habit{
 			Name:           name,
 			ResetFrequency: resetFrequency,
 			ResetValue:     resetValue,
 			IsActive:       isActive,
-			Group: group,
+			Group:          group,
 			// Add any other required fields if they exist.
 		}
-	
-		db.CreateHabit(&newHabit)  // I'm assuming the method should be called with newHabit instead of 'h'
+
+		db.CreateHabit(&newHabit) // I'm assuming the method should be called with newHabit instead of 'h'
 		rows, err := db.GetAllHabits()
 		if err != nil {
 			panic(err)
@@ -383,11 +449,9 @@ func habits(r *http.Request) *web.Response {
 		fmt.Println("Create complete")
 		return web.HTML(http.StatusOK, html, "habits.html", rows, nil)
 	}
-	
 
 	return web.Empty(http.StatusNotImplemented)
 }
-
 
 // Delete -> DELETE /company/{id} -> delete, companys.html
 
@@ -417,7 +481,7 @@ func index(r *http.Request) *web.Response {
 //}
 
 func habitGroup(r *http.Request) *web.Response {
-	
+
 	switch r.Method {
 	case http.MethodGet:
 		db, closeDB, err := NewDatabase()
@@ -430,10 +494,10 @@ func habitGroup(r *http.Request) *web.Response {
 			panic(getGroupsErr)
 		}
 		data := map[string]interface{}{
-			"topic": "go_habits",
+			"topic":  "go_habits",
 			"groups": groups,
 		}
-	
+
 		return web.HTML(http.StatusOK, html, "row-group-edit.html", data, nil)
 	case http.MethodPost:
 		db, closeDB, err := NewDatabase()
@@ -444,38 +508,38 @@ func habitGroup(r *http.Request) *web.Response {
 		id, _ := web.PathLast(r)
 		var idInt uint
 		_, idError := fmt.Sscanf(id, "%d", &idInt)
-		
+
 		if idError != nil {
 			fmt.Println("Error:", err)
 		}
-	
+
 		r.ParseForm()
 		group := r.Form.Get("Group")
-	
+
 		//		row.Company = r.Form.Get("company")
 		setErr := db.SetGroup(idInt, group)
 		if setErr != nil {
 			panic(setErr)
 		}
-	
+
 		groups, getGroupsErr := db.GetAllGroups()
 		if getGroupsErr != nil {
 			panic(getGroupsErr)
 		}
-	
+
 		data := map[string]interface{}{
-			"topic": "go_habits",
+			"topic":  "go_habits",
 			"groups": groups,
 		}
-	
+
 		return web.HTML(http.StatusOK, html, "row-group.html", data, nil)
 	}
 
 	return web.Empty(http.StatusNotImplemented)
-	
+
 }
 
- // /GET habit/edit/{id}
+// /GET habit/edit/{id}
 func habitEdit(r *http.Request) *web.Response {
 	fmt.Println("index:")
 
@@ -487,7 +551,7 @@ func habitEdit(r *http.Request) *web.Response {
 	id, _ := web.PathLast(r)
 	var idInt uint
 	_, idError := fmt.Sscanf(id, "%d", &idInt)
-	
+
 	if idError != nil {
 		fmt.Println("Error:", err)
 	}
@@ -502,7 +566,7 @@ func habitEdit(r *http.Request) *web.Response {
 	}
 
 	data := map[string]interface{}{
-		"Row": row,
+		"Row":    row,
 		"Groups": groups,
 	}
 
@@ -528,12 +592,12 @@ func habitEdit(r *http.Request) *web.Response {
 //	//cancel
 //	case http.MethodGet:
 //		if segments > 1 {
-			//cancel edit
-	//		row := getCompanyByID(id)
-	//		return web.HTML(http.StatusOK, html, "row.html", row, nil)
+//cancel edit
+//		row := getCompanyByID(id)
+//		return web.HTML(http.StatusOK, html, "row.html", row, nil)
 //		} else {
-			//cancel add
-	//		return web.HTML(http.StatusOK, html, "companies.html", data, nil)
+//cancel add
+//		return web.HTML(http.StatusOK, html, "companies.html", data, nil)
 //		}
 //
 //	//save edit

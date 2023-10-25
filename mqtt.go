@@ -15,12 +15,12 @@ type HabitPublisher struct {
 }
 
 type HabitMessage struct {
-	ObjectId                string `json:"object_id"`
-	Name              		string `json:"name"`
-	CommandTopic            string `json:"command_topic"`
-	FriendlyName			string `json:"friendly_name"`
-	Payload					string `json:"payload"`
-	Schema                  string `json:"schema"`
+	ObjectId     string `json:"object_id"`
+	Name         string `json:"name"`
+	CommandTopic string `json:"command_topic"`
+	FriendlyName string `json:"friendly_name"`
+	Payload      string `json:"payload"`
+	Schema       string `json:"schema"`
 }
 
 type Device struct {
@@ -29,18 +29,17 @@ type Device struct {
 }
 
 type MQTTConfig struct {
-	Name					string `json:"name"`
-	DeviceClass             string `json:"device_name"`
-	UniqueId 				string `json:"unique_id"`
-	StateTopic 				string `json:"state_topic"`
-	CommandTopic            string `json:"command_topic"`
-	FriendlyName			string `json:"friendly_name"`
-	Device       			Device `json:"device"`
-	Schema                  string `json:"schema"`
+	Name         string `json:"name"`
+	DeviceClass  string `json:"device_name"`
+	UniqueId     string `json:"unique_id"`
+	StateTopic   string `json:"state_topic"`
+	CommandTopic string `json:"command_topic"`
+	FriendlyName string `json:"friendly_name"`
+	Device       Device `json:"device"`
+	Schema       string `json:"schema"`
 }
 
-
-func (p *HabitPublisher) getDeviceName(modifier string)(string, string){
+func (p *HabitPublisher) getDeviceName(modifier string) (string, string) {
 	deviceName := GetEnvWithDefault("HA_DEVICE_NAME", "")
 	isDevStr := GetEnvWithDefault("IS_DEV", "false")
 	isDev := false
@@ -48,11 +47,11 @@ func (p *HabitPublisher) getDeviceName(modifier string)(string, string){
 		isDev = true
 	}
 	deviceId := "habV4"
-	if(len(modifier) > 0){
-		if(isDev){
+	if len(modifier) > 0 {
+		if isDev {
 			deviceName = "Habits " + modifier + " [dev]"
-		}else{
-			deviceName = "Habits "+ modifier
+		} else {
+			deviceName = "Habits " + modifier
 		}
 		deviceId = toSnakeCase(deviceName)
 	}
@@ -60,30 +59,25 @@ func (p *HabitPublisher) getDeviceName(modifier string)(string, string){
 	return deviceName, deviceId
 }
 
-
-func (p *HabitPublisher) getMqttTopic(rawTopic string, posfix string)string{
+func (p *HabitPublisher) getMqttTopic(rawTopic string, posfix string) string {
 	publishTopic := toSnakeCase(rawTopic)
 	//publishTopic := strings.ToLower(thisTopic)
 
-
-	fullTopic := "homeassistant/binary_sensor/"+  p.Topic + "/"+ publishTopic +"/" + posfix
+	fullTopic := "homeassistant/binary_sensor/" + p.Topic + "/" + publishTopic + "/" + posfix
 
 	println(fullTopic)
 	return fullTopic
 }
 
-func (p *HabitPublisher) getNoteMqttTopic(rawTopic string, posfix string)string{
+func (p *HabitPublisher) getNoteMqttTopic(rawTopic string, posfix string) string {
 	publishTopic := toSnakeCase(rawTopic)
 	//publishTopic := strings.ToLower(thisTopic)
 
-
-	fullTopic := "homeassistant/text_sensor/"+  p.Topic + "/"+ publishTopic +"/" + posfix
+	fullTopic := "homeassistant/sensor/notes/" + publishTopic + "/" + posfix
 
 	println(fullTopic)
 	return fullTopic
 }
-
-
 
 func NewHabitPublisher() *HabitPublisher {
 	broker := GetEnvWithDefault("MQTT_URL", "localhost")
@@ -103,7 +97,7 @@ func (p *HabitPublisher) Connect() {
 	}
 }
 
-func (p *HabitPublisher) DeleteHabit(habit Habit) { 
+func (p *HabitPublisher) DeleteHabit(habit Habit) {
 	configTopic := p.getMqttTopic(habit.Name, "config")
 	if token := p.Client.Publish(configTopic, 0, false, ""); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
@@ -113,32 +107,29 @@ func (p *HabitPublisher) DeleteHabit(habit Habit) {
 func (p *HabitPublisher) PublishHabits(habits []Habit) {
 	for _, habit := range habits {
 
-
 		stateTopic := p.getMqttTopic(habit.Name, "state")
 		setTopic := p.getMqttTopic(habit.Name, "set")
 
 		deviceName, deviceId := p.getDeviceName(habit.Group)
 
 		configMessage := MQTTConfig{
-			Name: habit.Name,
-			StateTopic: stateTopic,
-			DeviceClass: "binary_sensor",
+			Name:         habit.Name,
+			StateTopic:   stateTopic,
+			DeviceClass:  "binary_sensor",
 			FriendlyName: habit.Name,
-			UniqueId: habit.Name,
+			UniqueId:     habit.Name,
 			CommandTopic: setTopic,
 			Device: Device{
 				Identifiers: deviceId,
-				Name: deviceName,
+				Name:        deviceName,
 			},
 			Schema: "json",
 		}
 
 		configTopic := p.getMqttTopic(habit.Name, "config")
 
-
 		fmt.Println("publishing:")
 		fmt.Println(configTopic)
-
 
 		habitConfigJson, err := json.Marshal(configMessage)
 		if err != nil {
@@ -147,7 +138,14 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 		}
 
 		fmt.Println("habitConfigJson:")
-		fmt.Print(configMessage)
+		fmt.Printf("%v\n", configMessage)
+
+		data, err := json.MarshalIndent(configMessage, "", "    ")
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		fmt.Println(string(data))
 
 		if token := p.Client.Publish(configTopic, 0, true, habitConfigJson); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
@@ -160,7 +158,7 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 		//	Payload: "on",
 		//	Schema: "json",
 		//}
-//
+		//
 		//// Convert the habit to a JSON object.
 		//habitJson, err := json.Marshal(habitMessageJson)
 		//if err != nil {
@@ -169,7 +167,7 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 		//}
 
 		payload := "OFF"
-		if(habit.NeedsCompletion){
+		if habit.NeedsCompletion {
 			payload = "ON"
 		}
 
@@ -179,91 +177,100 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 	}
 }
 
-
 func (p *HabitPublisher) PublishNotes(notes []Note) {
 	for _, note := range notes {
 
-	// add publishing of config message to link to HA
+		// add publishing of config message to link to HA
 
-	stateTopic := p.getMqttTopic(note.Title, "state")
-	setTopic := p.getMqttTopic(note.Title, "set")
-	deviceName, deviceId := p.getDeviceName("notes")
+		stateTopic := p.getNoteMqttTopic(note.Title, "state")
+		setTopic := p.getNoteMqttTopic(note.Title, "set")
+		deviceName, deviceId := p.getDeviceName("notes")
 
-	configMessage := MQTTConfig{
-		Name: note.Title,
-		StateTopic: stateTopic,
-		DeviceClass: "binary_sensor",
-		FriendlyName: note.Title,
-		UniqueId: note.Title,
-		CommandTopic: setTopic,
-		Device: Device{
-			Identifiers: deviceId,
-			Name: deviceName,
-		},
-		Schema: "json",
-	}
+		configMessage := MQTTConfig{
+			Name:       note.Title,
+			StateTopic: stateTopic,
+			//		DeviceClass:  "sensor",
+			FriendlyName: note.Title,
+			UniqueId:     note.Title,
+			CommandTopic: setTopic,
+			Device: Device{
+				Identifiers: deviceId,
+				Name:        deviceName,
+			},
+			Schema: "json",
+		}
 
-	configTopic := p.getNoteMqttTopic(note.Title, "config")
+		configTopic := p.getNoteMqttTopic(note.Title, "config")
 
+		fmt.Println("\n\n\nPublishNotes === publishing:")
+		fmt.Println(configTopic)
 
-	fmt.Println("publishing:")
-	fmt.Println(configTopic)
-
-
-	habitConfigJson, err := json.Marshal(configMessage)
-	if err != nil {
-		fmt.Println(err)
-		continue
-	}
-
-	fmt.Println("habitConfigJson:")
-	fmt.Print(configMessage)
-
-	if token := p.Client.Publish(configTopic, 0, true, habitConfigJson); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
-	}
-
-
-	for _, note := range notes {
-		noteTopic := p.getMqttTopic(note.Title, "note")
-		
-		noteJson, err := json.Marshal(note)
+		noteConfigJson, err := json.Marshal(configMessage)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		if token := p.Client.Publish(noteTopic, 0, true, noteJson); token.Wait() && token.Error() != nil {
+		data, err := json.MarshalIndent(noteConfigJson, "", "    ")
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+
+		fmt.Printf("============================\n\nPublishNotes:configTopic: for - %s\n", configTopic)
+		fmt.Println(string(data))
+
+		if token := p.Client.Publish(configTopic, 0, true, noteConfigJson); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
+		}
+
+		for _, note := range notes {
+
+			noteJson, err := json.Marshal(note)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			data, err := json.MarshalIndent(noteJson, "", "    ")
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+
+			fmt.Printf("========================\n\nPublishNotes:noteTopic: for - %s\n", stateTopic)
+			fmt.Println(string(data))
+
+			if token := p.Client.Publish(stateTopic, 0, true, noteJson); token.Wait() && token.Error() != nil {
+				fmt.Println(token.Error())
+			}
 		}
 	}
 }
-}
 
 func (p *HabitPublisher) DeleteNote(note Note) {
-	noteTopic := p.getMqttTopic(note.Title, "note")
+	noteTopic := p.getNoteMqttTopic(note.Title, "note")
 	if token := p.Client.Publish(noteTopic, 0, true, ""); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 	}
 }
+
 var notesMap = make(map[string]Note) // to store received notes
 
 func (p *HabitPublisher) SubscribeToAllNotes() {
-    handler := func(client mqtt.Client, msg mqtt.Message) {
-        var note Note
-        if err := json.Unmarshal(msg.Payload(), &note); err != nil {
-            fmt.Println(err)
-            return
-        }
-        notesMap[msg.Topic()] = note // Store the received note in the map
-    }
-    wildcardTopic := "notes/#" // assuming all your notes are published under "notes/"
-    if token := p.Client.Subscribe(wildcardTopic, 0, handler); token.Wait() && token.Error() != nil {
-        fmt.Println(token.Error())
-    }
+	handler := func(client mqtt.Client, msg mqtt.Message) {
+		var note Note
+		if err := json.Unmarshal(msg.Payload(), &note); err != nil {
+			fmt.Println(err)
+			return
+		}
+		notesMap[msg.Topic()] = note // Store the received note in the map
+	}
+	wildcardTopic := "notes/#" // assuming all your notes are published under "notes/"
+	if token := p.Client.Subscribe(wildcardTopic, 0, handler); token.Wait() && token.Error() != nil {
+		fmt.Println(token.Error())
+	}
 }
-
-
 
 func (p *HabitPublisher) Disconnect() {
 	p.Client.Disconnect(250)

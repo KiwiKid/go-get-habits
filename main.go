@@ -25,6 +25,7 @@ var (
 	//parsed templates
 	html *template.Template
 )
+
 /*
 func keepCheckingHabitStatus() {
 	fmt.Println("keepCheckingHabitStatus")
@@ -77,9 +78,7 @@ func keepCheckingHabitStatus() {
 	}
 }*/
 
-func needsCompletion(h Habit) bool {
-	// Based on your habit's reset frequency and reset value,
-	// determine if the habit needs to be completed again
+func needsResetBasedCompletion(h Habit) bool {
 	switch h.ResetFrequency {
 	case Daily:
 		return time.Since(h.LastComplete) > time.Duration(h.ResetValue)*time.Hour*24
@@ -96,6 +95,32 @@ func needsCompletion(h Habit) bool {
 		log.Printf("Unknown reset frequency: %s", h.ResetFrequency)
 		return false
 	}
+}
+
+func needsCompletion(h Habit) bool {
+	log.Printf("Checking completion for habit: %+v\n", h)
+
+	if !needsResetBasedCompletion(h) {
+		log.Printf("Habit does not need reset based completion.")
+		return false
+	}
+	var isAfterStartTime bool
+	var isBeforeEndTime bool
+	// Ensure the current time is within the defined start and end times for the habit.
+	currentTime := time.Now()
+	startTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), h.StartHour, h.StartMinute, 0, 0, currentTime.Location())
+	endTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), h.EndHour, h.EndMinute, 0, 0, currentTime.Location())
+
+	log.Printf("Current time: %v, Start time: %v, End time: %v", currentTime, startTime, endTime)
+
+	isAfterStartTime = currentTime.After(startTime)
+	isBeforeEndTime = currentTime.Before(endTime)
+	log.Printf("Is current time after start time? %v. Is current time before end time? %v.", isAfterStartTime, isBeforeEndTime)
+
+	noStartTime := h.StartHour == 0 && h.StartMinute == 0
+	noEndTime := h.EndHour == 0 && h.EndMinute == 0
+	log.Printf("Is there a start and end time set? noStartTime: %v noEndTime: %v", noStartTime, noEndTime)
+	return (noStartTime || isAfterStartTime) && (isBeforeEndTime || noEndTime)
 }
 
 func main() {
@@ -122,6 +147,7 @@ func main() {
 	router.Handle("/check", web.Action(checkAndPublish))
 
 	router.Handle("/notes", web.Action(notes))
+	router.Handle("/notes/", web.Action(notes))
 
 	router.Handle("/habit/add", web.Action(habitAdd))
 	router.Handle("/habit/add/", web.Action(habitAdd))
@@ -132,8 +158,6 @@ func main() {
 
 	router.Handle("/habit", web.Action(habits))
 	router.Handle("/habit/", web.Action(habits))
-
-
 
 	router.Handle("/css/output.css", http.FileServer(http.FS(css)))
 	//router.Handle("/company/edit", web.Action(companyEdit))
@@ -154,7 +178,6 @@ func main() {
 
 	port := gotoolbox.GetEnvWithDefault("PORT", "8122")
 	logger.Println("listening on http://localhost:" + port)
-	
 
 	if err := http.ListenAndServe(":"+port, middleware); err != nil {
 		logger.Println("http.ListenAndServe():", err)

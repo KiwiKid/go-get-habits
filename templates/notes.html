@@ -1,22 +1,31 @@
-<form hx-post="/notes" htmx-swap="this">
-    <label for="title">Title:</label>
-    <input type="text" id="title" name="title" required>
-    
-    <label for="content">Content:</label>
-    <textarea id="content" name="content" required></textarea>
-    
-    <button type="submit">Submit ({{.message}})</button>
-
-
-<div id="notes" class="p-10">
-    Notes:
-   
-    {{range .notes}}
-    <div class="p-4">
-        <div>{{.Title}}</div><div> {{.Content}}</div>
+<form hx-post="/notes" htmx-swap="this" id="notes-container">
+   <h3>        Notes:</h3>
+    <div id="notes" class="flex flex-wrap justify-start mt-4">
+       
+        {{range .notes}}
+        <div class="p-4 m-2">
+            <div class="w-64 h-64  p-6 bg-yellow-100 border border-yellow-300 rounded-lg shadow-lg transform rotate-[-1deg]">
+                <div class="font-bold mb-2"><button hx-delete="/notes/{{.ID}}" hx-swap="outerHTML" hx-target="#notes-container" hx-confirm="Are you sure you want to delete {{.Content}}?">❌</button><span> - {{.Title}} </span></div>
+                <div>{{.Content}}</div>
+            </div>
+        </div>
+        {{end}}
+        <div class="p-4 m-2">
+        <div class="w-64 h-64 p-6 bg-yellow-100 border border-yellow-300 rounded-lg shadow-lg transform rotate-[-1deg]">
+            <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+        
+        <label for="content">Content:</label>
+        <textarea id="content" name="content" required></textarea>
+        
+        <button class="inline-flex items-center h-8 px-4 m-2 text-sm text-green-100 transition-colors duration-150 bg-green-700 rounded-lg focus:shadow-outline hover:bg-green-800" type="submit">
+            Add Note {{.message}}
+        </button>   
     </div>
-    {{end}}
-    <!-- Render notes here, if needed -->
+    </div>
 </div>
+    
+    
+    
 
 </form>
