@@ -9,5 +9,5 @@ FROM golang:1.20.4
 COPY --from=build /go/src/app/app /go/bin/app
 CMD ["/go/bin/app"]
 EXPOSE 8122
-VOLUME ["/app/db"]
+VOLUME ["/db"]
 ENV MQTT_URL=localhost
