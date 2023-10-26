@@ -63,11 +63,11 @@ type Database struct {
 }
 
 func NewDatabase() (*Database, func(), error) {
-	if _, err := os.Stat("db"); os.IsNotExist(err) {
-		os.Mkdir("db", 0755)
+	if _, err := os.Stat("/db"); os.IsNotExist(err) {
+		os.Mkdir("/db", 0755)
 	}
 
-	db, err := gorm.Open(sqlite.Open("db/habits.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("/db/habits.db"), &gorm.Config{})
 	if err != nil {
 		return nil, nil, err
 	}
