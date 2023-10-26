@@ -99,7 +99,6 @@ func NewDatabase() (*Database, func(), error) {
 func (d *Database) checkAndUpdateHabits() error {
 	log.Printf("checking")
 
-	// Initialize database
 	db, closeDB, err := NewDatabase()
 	if err != nil {
 		log.Printf("Error initializing database: %s", err)
@@ -107,13 +106,11 @@ func (d *Database) checkAndUpdateHabits() error {
 
 	defer closeDB()
 
-	// Fetch all active habits
 	rows, err := db.GetAllHabits(true)
 	if err != nil {
 		log.Printf("Error fetching habits: %s", err)
 	}
 
-	// Check each habit's status
 	for _, habit := range rows {
 		fmt.Println("Checking :" + habit.Name)
 
@@ -153,7 +150,6 @@ func (d *Database) CreateHabit(h *Habit) error {
 func (d *Database) GetAllHabits(isActive ...bool) ([]Habit, error) {
 	var habits []Habit
 
-	// Check if the database is initialized
 	if d.db == nil {
 		return nil, errors.New("database is not initialized")
 	}
