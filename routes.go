@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// GET /company/add
+// GET /habit/add
 func habitAdd(r *http.Request) *web.Response {
 	fmt.Println("habitAdd:")
 
@@ -418,8 +418,6 @@ func habits(r *http.Request) *web.Response {
 		r.ParseForm()
 
 		name := r.Form.Get("Name")
-		resetFrequency := ResetFrequency(r.Form.Get("ResetFrequency"))
-		resetValue, err := strconv.Atoi(r.Form.Get("ResetValue"))
 		group := r.Form.Get("NewGroup")
 		if len(group) > 0 {
 			println("new group")
@@ -427,21 +425,16 @@ func habits(r *http.Request) *web.Response {
 			group = r.Form.Get("Group")
 		}
 		if err != nil {
-			// handle error
+			panic(err)
 		}
-		// group := r.Form.Get("Group")
-		isActive := len(r.Form.Get("IsActive")) > 0
 
 		newHabit := Habit{
-			Name:           name,
-			ResetFrequency: resetFrequency,
-			ResetValue:     resetValue,
-			IsActive:       isActive,
-			Group:          group,
-			// Add any other required fields if they exist.
+			Name:     name,
+			IsActive: true,
+			Group:    group,
 		}
 
-		db.CreateHabit(&newHabit) // I'm assuming the method should be called with newHabit instead of 'h'
+		db.CreateHabit(&newHabit)
 		rows, err := db.GetAllHabits()
 		if err != nil {
 			panic(err)
@@ -453,20 +446,13 @@ func habits(r *http.Request) *web.Response {
 	return web.Empty(http.StatusNotImplemented)
 }
 
-// Delete -> DELETE /company/{id} -> delete, companys.html
-
-// Edit   -> GET /company/edit/{id} -> row-edit.html
-// Save   ->   PUT /company/{id} -> update, row.html
-// Cancel ->	 GET /company/{id} -> nothing, row.html
-
-// Add    -> GET /company/add/ -> companys-add.html (target body with row-add.html and row.html)
-// Save   ->   POST /company -> add, companys.html (target body without row-add.html)
-// Cancel ->	 GET /company -> nothing, companys.html
-
 func index(r *http.Request) *web.Response {
 	fmt.Println("index:")
 
 	db, closeDB, err := NewDatabase()
+	if err != nil {
+		panic(err)
+	}
 	rows, err := db.GetAllHabits()
 	if err != nil {
 		panic(err)
@@ -474,11 +460,6 @@ func index(r *http.Request) *web.Response {
 	defer closeDB()
 	return web.HTML(http.StatusOK, html, "index.html", rows, nil)
 }
-
-// GET /company/add
-//func companyAdd(r *http.Request) *web.Response {
-//	return web.HTML(http.StatusOK, html, "company-add.html", data, nil)
-//}
 
 func habitGroup(r *http.Request) *web.Response {
 

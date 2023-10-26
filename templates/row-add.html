@@ -11,52 +11,7 @@
           placeholder="Habit Name"
       />
   </div>
-
-  <div class="whitespace-nowrap px-6 py-4 w-1/9">
-      <input
-          type="checkbox"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          data-include-add=""
-          name="IsActive"
-      />
-  </div>
-
-  <!-- I noticed there was no input for "NeedsCompletion", so I'm assuming this is determined elsewhere. I'm skipping it. -->
-
-  <!-- Placeholder for "LastComplete", assuming it's set when a habit is first completed -->
-  <div class="whitespace-nowrap px-6 py-4 w-1/9"></div>
-
-  <div class="whitespace-nowrap px-6 py-4 w-1/9">
-      <input
-          type="number"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          data-include-add=""
-          name="ResetValue"
-          placeholder="Reset Value"
-      />
-  </div>
-
-  <div class="whitespace-nowrap px-6 py-4 w-1/9">
-      <select data-include-add="" name="ResetFrequency" id="ResetFrequency" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-          <option value="minutes">Minutes</option>
-          <option value="hourly">Hourly</option>
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-      </select>
-  </div>
-
-  <div class="whitespace-nowrap px-6 py-4 w-1/9">
-      <input
-          type="text"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          data-include-add=""
-          name="Group"
-          placeholder="Group"
-      />
-  </div>
-
-  <div class="whitespace-nowrap px-1 py-1 w-1/9">
+<div class="whitespace-nowrap px-1 py-1 w-1/9">
       <a
           hx-post="/habit/"
           hx-target="#habits"
