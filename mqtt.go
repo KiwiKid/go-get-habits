@@ -43,9 +43,9 @@ func (p *HabitPublisher) getDeviceName(class string, modifier string) (string, s
 	var deviceName string = class + modifier
 	isDevStr := GetEnvWithDefault("IS_DEV", "false")
 	if isDevStr == "true" {
-		deviceName = class + modifier + "_dev"
+		deviceName = class + "-" + modifier + "_dev"
 	} else {
-		deviceName = class + modifier
+		deviceName = class + "-" + modifier
 	}
 
 	deviceId := toSnakeCase(deviceName)
