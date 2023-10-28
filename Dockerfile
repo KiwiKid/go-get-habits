@@ -11,3 +11,4 @@ CMD ["/go/bin/app"]
 EXPOSE 8122
 VOLUME ["/db"]
 ENV MQTT_URL=localhost
+ENV DB_PATH=/db/habits.db

@@ -53,9 +53,10 @@ type HabitUpdates struct {
 }
 
 type Note struct {
-	ID      uint   `gorm:"primarykey"`
-	Title   string `gorm:"type:varchar(1024)"`
-	Content string `gorm:"type:varchar(1024)"`
+	ID                uint   `gorm:"primarykey"`
+	Title             string `gorm:"type:varchar(1024)"`
+	Content           string `gorm:"type:varchar(1024)"`
+	OnlyRelevantOnDay string `gorm:"type:varchar(255)"`
 }
 
 type Database struct {
@@ -63,11 +64,22 @@ type Database struct {
 }
 
 func NewDatabase() (*Database, func(), error) {
-	if _, err := os.Stat("/db"); os.IsNotExist(err) {
-		os.Mkdir("/db", 0755)
+
+	dbpath := GetEnvWithDefault("DB_PATH", "db/habits.db")
+	if _, err := os.Stat("db"); os.IsNotExist(err) {
+		log.Print("making db dir")
+		if err := os.Mkdir("db", 0755); err != nil {
+			log.Fatalf("Failed to create directory: %v", err)
+		}
+	} else {
+		log.Print("db dir exists")
 	}
 
-	db, err := gorm.Open(sqlite.Open("/db/habits.db"), &gorm.Config{})
+	if _, err := os.Stat(dbpath); os.IsNotExist(err) {
+		log.Print("Database file does not exist")
+	}
+
+	db, err := gorm.Open(sqlite.Open(dbpath), &gorm.Config{})
 	if err != nil {
 		return nil, nil, err
 	}

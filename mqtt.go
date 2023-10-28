@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
+	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -213,6 +215,12 @@ func (p *HabitPublisher) PublishNotes(notes []Note) {
 		}
 
 		for _, note := range notes {
+
+			currentDay := time.Now().Weekday().String()
+
+			if !strings.Contains(strings.ToLower(note.OnlyRelevantOnDay), strings.ToLower(currentDay)) {
+				continue // Skip this note if not relevant today
+			}
 
 			noteJson, err := json.Marshal(note)
 			if err != nil {

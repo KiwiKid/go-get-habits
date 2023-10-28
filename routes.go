@@ -159,6 +159,7 @@ func notes(r *http.Request) *web.Response {
 
 		title := r.FormValue("title")
 		content := r.FormValue("content")
+		onlyRelevantOnDay := r.FormValue("onlyRelevantOnDay")
 
 		/*noteData := map[string]interface{}{
 			"title": title,
@@ -172,8 +173,9 @@ func notes(r *http.Request) *web.Response {
 		}
 
 		createErr := db.CreateNote(&Note{
-			Title:   title,
-			Content: content,
+			Title:             title,
+			Content:           content,
+			OnlyRelevantOnDay: onlyRelevantOnDay,
 		})
 
 		if createErr != nil {
