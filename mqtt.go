@@ -41,35 +41,26 @@ type MQTTConfig struct {
 	Schema       string `json:"schema"`
 }
 
-func (p *HabitPublisher) getDeviceName(class string, modifier string) (string, string) {
-	var deviceName string = class + modifier
-	isDevStr := GetEnvWithDefault("IS_DEV", "false")
-	if isDevStr == "true" {
-		deviceName = class + "-" + modifier + "_dev"
-	} else {
-		deviceName = class + "-" + modifier
+func (p *HabitPublisher) publishMQTTMessage(topic string, message interface{}) error {
+	jsonMessage, err := json.MarshalIndent(message, "", "    ")
+	if err != nil {
+		return fmt.Errorf("error marshaling message: %v", err)
 	}
 
-	deviceId := toSnakeCase(deviceName)
+	token := p.Client.Publish(topic, 0, true, jsonMessage)
+	token.Wait()
+	if token.Error() != nil {
+		return fmt.Errorf("error publishing message to topic %s: %v", topic, token.Error())
+	}
 
-	return deviceName, deviceId
+	return nil
 }
 
-func (p *HabitPublisher) getMqttTopic(rawTopic string, posfix string) string {
-	publishTopic := toSnakeCase(rawTopic)
+func (p *HabitPublisher) getMqttTopic(rawTopic string, postfix string) string {
+	publishTopic := lowerAndReplaceSpaces(rawTopic)
 	//publishTopic := strings.ToLower(thisTopic)
 
-	fullTopic := "homeassistant/binary_sensor/" + p.Topic + "/" + publishTopic + "/" + posfix
-
-	println(fullTopic)
-	return fullTopic
-}
-
-func (p *HabitPublisher) getNoteMqttTopic(rawTopic string, posfix string) string {
-	publishTopic := toSnakeCase(rawTopic)
-	//publishTopic := strings.ToLower(thisTopic)
-
-	fullTopic := "homeassistant/sensor/notes/" + publishTopic + "/" + posfix
+	fullTopic := "homeassistant/binary_sensor/" + p.Topic + "/" + publishTopic + "/" + postfix
 
 	println(fullTopic)
 	return fullTopic
@@ -103,17 +94,18 @@ func (p *HabitPublisher) DeleteHabit(habit Habit) {
 func (p *HabitPublisher) PublishHabits(habits []Habit) {
 	for _, habit := range habits {
 
-		stateTopic := p.getMqttTopic(habit.Name, "state")
 		//	setTopic := p.getMqttTopic(habit.Name, "set")
 
-		deviceName, deviceId := p.getDeviceName("habit", habit.Group)
+		stateTopic := habit.getMQTTTopic(p.Topic, "state")
+
+		deviceName, deviceId := habit.getDeviceName()
 
 		configMessage := MQTTConfig{
 			Name:         habit.Name,
 			StateTopic:   stateTopic,
 			DeviceClass:  "binary_sensor",
 			FriendlyName: habit.Name,
-			UniqueId:     habit.Name,
+			UniqueId:     habit.getUniqueId(),
 			//		CommandTopic: setTopic,
 			Device: Device{
 				Identifiers: deviceId,
@@ -171,20 +163,15 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 
 func (p *HabitPublisher) PublishNotes(notes []Note) {
 	for _, note := range notes {
-
-		// add publishing of config message to link to HA
-
-		stateTopic := p.getNoteMqttTopic(note.Title, "state")
-		//	setTopic := p.getNoteMqttTopic(note.Title, "set")
-		deviceName, deviceId := p.getDeviceName("notes", "")
+		// Construct and publish config message
+		stateTopic := note.getMQTTTopic("state")
+		deviceName, deviceId := note.getDeviceName()
 
 		configMessage := MQTTConfig{
-			Name:       note.Title,
-			StateTopic: stateTopic,
-			//		DeviceClass:  "sensor",
+			Name:         note.Title,
+			StateTopic:   stateTopic,
 			FriendlyName: note.Title,
 			UniqueId:     note.Title,
-			//		CommandTopic: setTopic,
 			Device: Device{
 				Identifiers: deviceId,
 				Name:        deviceName,
@@ -192,60 +179,34 @@ func (p *HabitPublisher) PublishNotes(notes []Note) {
 			Schema: "json",
 		}
 
-		configTopic := p.getNoteMqttTopic(note.Title, "config")
-		fmt.Println("NOTESNOTESNOTESNOTESNOTESNOTESNOTES:")
+		configTopic := note.getMQTTTopic("config")
+		fmt.Println("Publishing MQTT config for note:", note.Title)
 
-		noteConfigJson, err := json.Marshal(configMessage)
-		if err != nil {
+		if err := p.publishMQTTMessage(configTopic, configMessage); err != nil {
 			fmt.Println(err)
 			continue
 		}
+	}
 
-		data, err := json.MarshalIndent(noteConfigJson, "", "    ")
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
+	// Publish state messages for relevant notes
+	currentDay := time.Now().Weekday().String()
+	for _, note := range notes {
+		if !strings.Contains(strings.ToLower(note.OnlyRelevantOnDay), strings.ToLower(currentDay)) {
+			continue // Skip this note if not relevant today
 		}
 
-		fmt.Printf("============================\n\nPublishNotes:configTopic: for - %s\nnoteConfigJson:\n", configTopic)
-		fmt.Println(string(data))
+		stateTopic := note.getMQTTTopic("state")
+		fmt.Println("Publishing MQTT state for note:", note.Title)
 
-		if token := p.Client.Publish(configTopic, 0, true, noteConfigJson); token.Wait() && token.Error() != nil {
-			fmt.Println(token.Error())
-		}
-
-		for _, note := range notes {
-
-			currentDay := time.Now().Weekday().String()
-
-			if !strings.Contains(strings.ToLower(note.OnlyRelevantOnDay), strings.ToLower(currentDay)) {
-				continue // Skip this note if not relevant today
-			}
-
-			noteJson, err := json.Marshal(note)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-
-			data, err := json.MarshalIndent(noteJson, "", "    ")
-			if err != nil {
-				fmt.Println("Error:", err)
-				return
-			}
-
-			fmt.Printf("========================\n\nPublishNotes:noteTopic: for - %s\n\npayload:\n", stateTopic)
-			fmt.Println(string(data))
-
-			if token := p.Client.Publish(stateTopic, 0, true, noteJson); token.Wait() && token.Error() != nil {
-				fmt.Println(token.Error())
-			}
+		if err := p.publishMQTTMessage(stateTopic, note); err != nil {
+			fmt.Println(err)
+			continue
 		}
 	}
 }
 
 func (p *HabitPublisher) DeleteNote(note Note) {
-	noteTopic := p.getNoteMqttTopic(note.Title, "note")
+	noteTopic := note.getMQTTTopic("state")
 	if token := p.Client.Publish(noteTopic, 0, true, ""); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 	}

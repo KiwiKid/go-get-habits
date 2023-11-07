@@ -39,6 +39,40 @@ type Habit struct {
 	EndMinute       int       `gorm:"type:int"` // Value between 0-23
 }
 
+func (h Habit) getUniqueId() string {
+	isDevStr := GetEnvWithDefault("IS_DEV", "false")
+
+	return fmt.Sprintf("%d-%s", h.ID, isDevStr)
+}
+
+func (h Habit) getMQTTTopic(topic string, msgType string) string {
+
+	if msgType != "state" && msgType != "config" {
+		log.Fatalf("only 'state' and 'config' are supported")
+	}
+
+	fullTopic := "homeassistant/binary_sensor/" + topic + "/" + h.Name + "/" + msgType
+	publishTopic := lowerAndReplaceSpaces(fullTopic)
+
+	println(publishTopic)
+	return publishTopic
+}
+
+func (h *Habit) getDeviceName() (name string, id string) {
+
+	var deviceName string
+	isDevStr := GetEnvWithDefault("IS_DEV", "false")
+	if isDevStr == "true" {
+		deviceName = h.Group + "_dev"
+	} else {
+		deviceName = h.Group
+	}
+
+	deviceId := lowerAndReplaceSpaces(deviceName)
+
+	return deviceName, deviceId
+}
+
 type HabitUpdates struct {
 	ID             *uint
 	Name           *string
@@ -57,6 +91,30 @@ type Note struct {
 	Title             string `gorm:"type:varchar(1024)"`
 	Content           string `gorm:"type:varchar(1024)"`
 	OnlyRelevantOnDay string `gorm:"type:varchar(255)"`
+}
+
+func (h *Note) getDeviceName() (name string, id string) {
+
+	var deviceName string
+	isDevStr := GetEnvWithDefault("IS_DEV", "false")
+	if isDevStr == "true" {
+		deviceName = "Notes_DEV"
+	} else {
+		deviceName = "Notes"
+	}
+
+	deviceId := lowerAndReplaceSpaces(deviceName)
+
+	return deviceName, deviceId
+}
+
+func (n *Note) getMQTTTopic(postfix string) string {
+	noteTitle := lowerAndReplaceSpaces(n.Title)
+	//publishTopic := strings.ToLower(thisTopic)
+
+	fullTopic := "homeassistant/sensor/notes/" + noteTitle + "/" + postfix
+
+	return fullTopic
 }
 
 type Database struct {

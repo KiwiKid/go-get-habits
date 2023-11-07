@@ -6,13 +6,12 @@ import (
 	"strings"
 )
 
-func toSnakeCase(s string) string {
+func lowerAndReplaceSpaces(s string) string {
 	lowercased := strings.ToLower(s)
 	return strings.Replace(lowercased, " ", "_", -1)
 }
 
-
-func checkAndPublishAll(){
+func checkAndPublishAll() {
 	db, closeDB, err := NewDatabase()
 	if err != nil {
 		panic(err)
@@ -20,10 +19,9 @@ func checkAndPublishAll(){
 	defer closeDB()
 	checkErr := db.checkAndUpdateHabits()
 
-	if(checkErr != nil){
+	if checkErr != nil {
 		panic(checkErr)
 	}
-	
 
 	publisher := NewHabitPublisher()
 
@@ -38,7 +36,6 @@ func checkAndPublishAll(){
 	// Publish the habits.
 	publisher.PublishHabits(rows)
 }
-
 
 func GetEnvWithDefault(key, defaultValue string) string {
 	value, exists := os.LookupEnv(key)
