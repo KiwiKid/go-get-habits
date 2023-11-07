@@ -268,6 +268,22 @@ func (d *Database) getAllNotes() ([]Note, error) {
 	return notes, nil
 }
 
+func (d *Database) GetNoteByID(id uint) (*Note, error) {
+	if d.db == nil {
+		return nil, errors.New("database is not initialized")
+	}
+
+	var note Note
+	result := d.db.First(&note, id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil // or return nil, result.Error if you want to return the not found error
+		}
+		return nil, result.Error
+	}
+	return &note, nil
+}
+
 func (d *Database) EditHabit(id uint, updatedHabit *HabitUpdates) error {
 	return d.db.Model(&Habit{}).Where("id = ?", id).Updates(updatedHabit).Error
 }

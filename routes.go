@@ -207,10 +207,22 @@ func notes(r *http.Request) *web.Response {
 		if err != nil {
 			panic(err)
 		}
+		deletedNote, getErr := db.GetNoteByID(idInt)
+		if getErr != nil {
+			panic(getErr)
+		}
 		deleteErr := db.DeleteNoteByID(idInt)
 		if deleteErr != nil {
 			panic(deleteErr)
 		}
+
+		publisher := NewHabitPublisher()
+
+		// Connect to the MQTT broker.
+		publisher.Connect()
+		defer publisher.Disconnect()
+
+		publisher.DeleteNote(*deletedNote)
 
 		notes, err := db.getAllNotes()
 		if err != nil {

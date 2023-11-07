@@ -209,6 +209,15 @@ func (p *HabitPublisher) DeleteNote(note Note) {
 	noteTopic := note.getMQTTTopic("state")
 	if token := p.Client.Publish(noteTopic, 0, true, ""); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
+	} else {
+		fmt.Printf("deleted: %s\n", noteTopic)
+	}
+
+	noteConfigTopic := note.getMQTTTopic("config")
+	if token := p.Client.Publish(noteConfigTopic, 0, true, ""); token.Wait() && token.Error() != nil {
+		fmt.Println(token.Error())
+	} else {
+		fmt.Printf("deleted: %s\n", noteConfigTopic)
 	}
 }
 
