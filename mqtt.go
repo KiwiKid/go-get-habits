@@ -85,16 +85,19 @@ func (p *HabitPublisher) Connect() {
 }
 
 func (p *HabitPublisher) DeleteHabit(habit Habit) {
-	configTopic := p.getMqttTopic(habit.Name, "config")
+	configTopic := habit.getMQTTTopic(p.Topic, "config")
 	if token := p.Client.Publish(configTopic, 0, false, ""); token.Wait() && token.Error() != nil {
+		fmt.Println(token.Error())
+	}
+
+	stateTopic := habit.getMQTTTopic(p.Topic, "state")
+	if token := p.Client.Publish(stateTopic, 0, false, ""); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 	}
 }
 
 func (p *HabitPublisher) PublishHabits(habits []Habit) {
 	for _, habit := range habits {
-
-		//	setTopic := p.getMqttTopic(habit.Name, "set")
 
 		stateTopic := habit.getMQTTTopic(p.Topic, "state")
 
@@ -114,7 +117,7 @@ func (p *HabitPublisher) PublishHabits(habits []Habit) {
 			Schema: "json",
 		}
 
-		configTopic := p.getMqttTopic(habit.Name, "config")
+		configTopic := habit.getMQTTTopic(p.Topic, "config")
 
 		fmt.Println("HABITSHabits\n\n\npublishing:")
 		fmt.Println(configTopic)
