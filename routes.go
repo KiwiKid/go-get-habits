@@ -475,6 +475,25 @@ func index(r *http.Request) *web.Response {
 	return web.HTML(http.StatusOK, html, "index.html", rows, nil)
 }
 
+func preview(r *http.Request) *web.Response {
+	fmt.Println("preview:")
+
+	db, closeDB, err := NewDatabase()
+	if err != nil {
+		panic(err)
+	}
+	rows, err := db.GetAllHabits()
+	if err != nil {
+		panic(err)
+	}
+	defer closeDB()
+
+	data := map[string]interface{}{
+		"habits": rows,
+	}
+	return web.HTML(http.StatusOK, html, "preview.html", data, nil)
+}
+
 func habitGroup(r *http.Request) *web.Response {
 
 	switch r.Method {

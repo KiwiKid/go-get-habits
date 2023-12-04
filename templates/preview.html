@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "header.html" . }}
+<body>
+<div class="overflow-x-auto">
+    <div class="border-b font-medium dark:border-neutral-500">
+        <div class="flex flex-wrap">
+            <div class="flex-none px-6 py-4 w-full md:w-1/8">Needs doing?</div>
+            <div class="flex-none px-6 py-4 w-full md:w-1/8">Last Complete</div>
+            <div class="flex-none px-6 py-4 w-full md:w-1/8">Habit</div>
+            <div class="flex-none px-6 py-4 w-full md:w-1/8">Active</div>
+            <div class="flex-none px-6 py-4 w-full md:w-1/8">Complete</div>
+            <div class="flex-none px-6 py-4 w-full md:w-1/8">Resets</div>
+            <div class="flex-none px-6 py-4 w-full md:w-1/8">Group</div>
+        </div>
+    </div>
+
+    <div id="table-body" class="flex flex-col">
+
+    {{range .habits}}
+
+        <div id="datarow-{{.ID}}" class="flex flex-wrap items-center border-b dark:border-neutral-500 w-full {{if .IsActive}} bg-green-200 {{else}}  {{if .NeedsCompletion}} bg-blue-700 {{else}} bg-gray-600 {{end}} {{end}}">
+            <!-- Status and completion indicators -->
+            <div class="flex-shrink-0 flex-grow-0 px-6 py-4 w-full md:w-1/8">
+                <a hx-post="/habit/complete/{{.ID}}" hx-indicator="#processing" class="inline-flex items-center min-h-full px-4 m-2 text-sm text-green-100 transition-colors duration-150 bg-green-400 rounded-lg focus:shadow-outline hover:bg-green-800">✅ - Mark Complete </a>
+                <!-- Status Icons -->
+                {{if not .IsActive}}
+                <span role="img" aria-label="cross">(off)</span>
+                {{else}}
+                {{if .NeedsCompletion}}
+                <span role="img" aria-label="tick">☐ (todo)</span>
+                {{else}}
+                <span role="img" aria-label="cross">☑️ (done)</span>
+                {{end}}
+                {{end}}
+            </div>
+            <!-- Last complete date -->
+            <div class="px-6 py-4 w-full md:w-1/8 border-b border-gray-200 text-sm">
+                {{.LastComplete | relativeTime}}
+            </div>
+            <!-- Name -->
+            <div class="px-6 py-4 w-full md:w-1/8 border-b border-gray-200 text-sm">{{.Name}}</div>
+            <!-- Reset Value and Frequency -->
+            <div class="px-6 py-4 w-full md:w-1/8 border-b border-gray-200 text-sm">Every {{.ResetValue}} {{.ResetFrequency}}</div>
+            <!-- Start Time -->
+            <div class="px-6 py-4 w-full md:w-1/8 border-b border-gray-200 text-sm">
+                Start: {{.StartHour}}:{{printf "%02d" .StartMinute}}
+            </div>
+            <!-- End Time -->
+            <div class="px-6 py-4 w-full md:w-1/8 border-b border-gray-200 text-sm">
+                End: {{.EndHour}}:{{printf "%02d" .EndMinute}}
+            </div>
+            <!-- Group -->
+            <div class="px-6 py-4 w-full md:w-1/8 border-b border-gray-200 text-sm">{{.Group}}</div>
+
+            <!-- Actions -->
+            <div class="px-6 py-4 w-full md:w-1/8 border-b border-gray-200 text-sm">
+                <a hx-get="/habit/edit/{{.ID}}" hx-target="#datarow-{{.ID}}" hx-swap="outerHTML" hx-indicator="#processing" class="inline-flex items-center min-h-8 px-4 m-2 text-sm text-orange-100 transition-colors duration-150 bg-orange-400 rounded-lg focus:shadow-outline hover:bg-orange-800">✏️ - Edit </a>
+                <a hx-delete="/habit/{{.ID}}" hx-target="#habits" hx-confirm="Are you sure you want to delete {{.Name}}?" hx-indicator="#processing" class="inline-flex items-center min-h-8 px-4 m-2 text-sm text-red-100 transition-colors duration-150 bg-red-400 rounded-lg focus:shadow-outline hover:bg-red-800">❌ - Delete </a>
+            </div>
+        </div>
+
+    {{end}}
+
+</div>
+</body>
+</html>

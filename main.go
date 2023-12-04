@@ -169,6 +169,8 @@ func main() {
 	router.Handle("/", web.Action(index))
 	router.Handle("/index.html", web.Action(index))
 
+	router.Handle("/preview", web.Action(preview))
+
 	//logging/tracing
 	nextRequestID := func() string {
 		return fmt.Sprintf("%d", time.Now().UnixNano())
