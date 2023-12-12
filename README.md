@@ -1,6 +1,6 @@
-# go-htmx-tailwind-example
+# go-get-habits
 
-A habit management and publishing system to track completion and broadcast habits/task status via a mqtt message broker for display in home assistant.
+A self-hosted habit management and publishing system to track habits then broadcast the status via a mqtt message broker for display in home assistant.
 
 Written with go, tailwind and htmx
 
